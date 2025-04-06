@@ -228,7 +228,7 @@ const RatingsPage = () => {
 
       {editing && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] h-[650px] flex flex-col"> {/* Use flex layout */}
             <DialogHeader>
               <DialogTitle className="pb-1">Edit Ratings</DialogTitle>
               <DialogDescription>
@@ -236,9 +236,10 @@ const RatingsPage = () => {
               </DialogDescription>
             </DialogHeader>
             <hr />
-            <div className="grid gap-4 pb-4 pt-2">
+            {/* Scrollable tracklist container */}
+            <div className="grid gap-4 pb-4 pt-2 overflow-y-auto flex-grow"> {/* Allow tracklist to grow and scroll */}
               {ratingsData.find((r) => r._id === editing)?.trackDetails.map((track) => (
-                <div key={track.trackId} className="grid grid-cols-4 items-center gap-4">
+                <div key={track.trackId} className="grid grid-cols-4 items-center gap-4 mr-5">
                   <Label htmlFor={`rating-${track.trackId}`} className="text-right">
                     {track.name}
                   </Label>
@@ -252,7 +253,8 @@ const RatingsPage = () => {
                 </div>
               ))}
             </div>
-            <DialogFooter>
+            
+            <DialogFooter className="bg-white mt-4"> {/* Ensure footer stays at the bottom */}
               <Button onClick={() => handleSaveClick(editing)}>Save changes</Button>
             </DialogFooter>
           </DialogContent>

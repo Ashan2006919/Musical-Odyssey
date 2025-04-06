@@ -21,8 +21,15 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
+// Function to connect to the database
 export async function connectToDatabase() {
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB);
   return { client, db };
+}
+
+// Function to get the users collection
+export async function getUsersCollection() {
+  const { db } = await connectToDatabase();
+  return db.collection("users");
 }

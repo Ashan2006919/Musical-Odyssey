@@ -5,7 +5,7 @@ import { FaSpotify, FaSoundcloud, FaApple, FaYoutube } from 'react-icons/fa';
 
 const Footer = () => {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/register' || pathname === '/login'|| pathname === '/' ;
+  const isAuthPage = pathname === '/register' || pathname === '/login'|| pathname === '/' || pathname === '/otp-verification';
 
   if (isAuthPage) {
     return null;
@@ -62,7 +62,7 @@ const Footer = () => {
           <span className="text-sm text-gray-500 sm:text-center dark:text-gray-400">© {new Date().getFullYear()} <a href="/" className="hover:underline">Odyssey Music™</a>. All Rights Reserved.
           </span>
           <div className="flex mt-4 sm:justify-center sm:mt-0">
-            <a href="https://www.spotify.com" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
+            <a href="https://open.spotify.com/user/31w456o3ccwx76uzg7xi355ukb34?si=405ba34b38b5435f" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
               <FaSpotify className="w-4 h-4" />
               <span className="sr-only">Spotify page</span>
             </a>

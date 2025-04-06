@@ -1,24 +1,30 @@
-// src/app/api/auth/login/route.js
-
-import { connectToDatabase } from '@/lib/mongodb';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcryptjs";
+import { connectToDatabase } from "@/lib/mongodb";  // Correct import statement
 
 export async function POST(req) {
-  const { email, password } = await req.json();  // Access request body
-  const { db } = await connectToDatabase();
-  const user = await db.collection('users').findOne({ email });
+  try {
+    const { email, password } = await req.json();
+    console.log("Login attempt for email:", email); // Log the email
 
-  if (!user) {
-    return new Response(JSON.stringify({ message: 'Invalid credentials' }), { status: 401 });
+    const { db } = await connectToDatabase();  // Use connectToDatabase to get db
+    const usersCollection = db.collection("users");  // Get the users collection
+
+    const user = await usersCollection.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+    if (!user) {
+      console.error("User not found for email:", email); // Log if user is not found
+      return new Response(JSON.stringify({ message: "User not found." }), { status: 401 });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.error("Invalid password for email:", email); // Log if password is invalid
+      return new Response(JSON.stringify({ message: "Invalid credentials." }), { status: 401 });
+    }
+
+    console.log("Login successful for email:", email); // Log successful login
+    return new Response(JSON.stringify({ message: "Login successful!" }), { status: 200 });
+  } catch (error) {
+    console.error("Error during login:", error); // Log any unexpected errors
+    return new Response(JSON.stringify({ message: "Something went wrong." }), { status: 500 });
   }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return new Response(JSON.stringify({ message: 'Invalid credentials' }), { status: 401 });
-  }
-
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  return new Response(JSON.stringify({ token }), { status: 200 });
 }

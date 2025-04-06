@@ -2,57 +2,129 @@
 
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from "next/navigation";  // Use the next/navigation module
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { FaSignInAlt } from 'react-icons/fa';
-import { loginUser } from '../api/auth';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FaSignInAlt } from "react-icons/fa";
+import { loginUser } from "../api/auth";
+import { LineShadowText } from "@/components/magicui/line-shadow-text";
+import { useTheme } from "next-themes";
+import { FaEnvelope, FaLock, FaGoogle, FaSpotify, FaApple } from "react-icons/fa";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const theme = useTheme();
+  const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setLoading(true);
 
     try {
       await loginUser({ email, password });
-      router.push('/home'); // Redirect to the home page after successful login
+      setEmail("");
+      setPassword("");
+      router.push("/home"); // Redirect after successful login
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6">
-      <h1 className="text-3xl font-bold mb-6">Login</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <form onSubmit={handleLogin} className="w-full max-w-sm">
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-4"
+    <div className="flex flex-col md:flex-row min-h-screen">
+      {/* Top/Left side for the image */}
+      <div className="w-full md:w-1/2 bg-gray-100 flex items-center justify-center mb-6 md:mb-0">
+        <img
+          src="/images/boy-with-headphones-listening-to.jpg"
+          alt="Register Illustration"
+          className="max-w-full max-h-full object-cover"
         />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mb-4"
-        />
-        <Button type="submit" className="w-full flex items-center justify-center">
-          <FaSignInAlt className="mr-2" /> Login
-        </Button>
-      </form>
-      <p className="mt-4">
-        Don't have an account? <a href="/register" className="text-blue-500">Register</a>
-      </p>
+      </div>
+
+      {/* Bottom/Right side for the login form */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6">
+        <h1 className=" text-5xl font-extrabold leading-tight tracking-tighter text-center">
+          Welcome to
+          <LineShadowText
+            className="italic text-primary ml-3 whitespace-nowrap mb-10"
+            shadowColor={shadowColor}
+          >
+            Music Odyssey!
+          </LineShadowText>
+        </h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleLogin} className="w-full max-w-sm">
+          <div className="relative mb-8">
+            <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 h-10 w-full"
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div className="relative mb-8">
+            <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 h-10 w-full"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full flex items-center justify-center font-semibold text-lg h-9"
+            disabled={loading}
+          >
+            <FaSignInAlt className="mr-2" />
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+        <p className="mt-4">
+          - or -
+        </p>
+        <div className="flex justify-center items-center mt-6 space-x-8">
+          <img
+            src="/icons/google.png"
+            alt="Login with Google"
+            className="w-10 h-10 cursor-pointer hover:opacity-80"
+            title="Login with Google"
+          />
+          <img
+            src="/icons/spotify.png"
+            alt="Login with Spotify"
+            className="w-10 h-10 cursor-pointer hover:opacity-80"
+            title="Login with Spotify"
+          />
+          <img
+            src="/icons/apple.png"
+            alt="Login with Apple"
+            className="w-10 h-10 cursor-pointer hover:opacity-80"
+            title="Login with Apple"
+          />
+        </div>
+        <p className="mt-5">
+          Don&apos;t have an account?{" "}
+          <a href="/register" className="text-blue-500">
+            Register
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

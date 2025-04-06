@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
 import {
   Dialog,
   DialogPanel,
@@ -41,7 +41,13 @@ const callsToAction = [
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isAuthPage = pathname === '/register' || pathname === '/login'|| pathname === '/' ;
+  const router = useRouter(); // Initialize the router
+
+  const isAuthPage =
+    pathname === '/register' ||
+    pathname === '/login' ||
+    pathname === '/' ||
+    pathname === '/otp-verification';
 
   if (isAuthPage) {
     return null;
@@ -127,7 +133,7 @@ const Header = () => {
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <Button
-            onClick={() => router.push('/ratings')}
+            onClick={() => router.push('/ratings')} // Use router.push to navigate
             className="px-4 py-2 text-lg flex items-center justify-center gap-2 transition-all bg-violet-500 hover:bg-violet-600 text-white rounded-lg"
           >
             <FaListAlt /> View Ratings

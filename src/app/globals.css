@@ -141,5 +141,52 @@ input[type="number"]::placeholder {
   display: none;
 }
 
+::-webkit-scrollbar {
+  width: 4px; /* Make the scrollbar thinner */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.5); /* Darker thumb for better visibility */
+  border-radius: 3px; /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.7); /* Slightly darker on hover */
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.1); /* Light background for the track */
+}
+
+/* Default scrollbar styles (light mode) */
+::-webkit-scrollbar {
+  width: 4px; /* Make the scrollbar thinner */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.5); /* Darker thumb for better visibility */
+  border-radius: 3px; /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.7); /* Slightly darker on hover */
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.1); /* Light background for the track */
+}
+
+/* Dark mode scrollbar styles */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.5); /* Lighter thumb for dark mode */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.7); /* Slightly lighter on hover */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.1); /* Light background for the track in dark mode */
+}
 
 
