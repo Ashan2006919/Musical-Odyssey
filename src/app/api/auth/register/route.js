@@ -48,11 +48,11 @@ async function sendVerificationEmail(email, code) {
 // Handle POST request (user registration)
 export async function POST(req) {
   try {
-    const { FirstName, LastName, email, password } = await req.json();
+    const { username, email, password } = await req.json();
 
     // Check if all fields are provided
-    if (!FirstName || !LastName || !email || !password) {
-      console.error('Missing required fields:', { FirstName, LastName, email, password });
+    if (!username || !email || !password) {
+      console.error('Missing required fields:', { username, email, password });
       return new Response(
         JSON.stringify({ message: "All fields are required." }),
         { status: 400 }
@@ -75,7 +75,7 @@ export async function POST(req) {
     // Store OTP and user data in memory
     verificationCodes[email] = {
       code: verificationCode,
-      userData: { FirstName, LastName, email, password: hashedPassword },
+      userData: { username, email, password: hashedPassword },
     };
 
     // Send verification email
