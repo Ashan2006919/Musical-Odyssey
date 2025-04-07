@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { AvatarCircles } from "@/components/magicui/avatar-circles";
 import { useTheme } from "next-themes";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
+import { signOut } from "next-auth/react";
 
 const products = [
   {
@@ -70,7 +71,13 @@ const callsToAction = [
   { name: "Contact sales", href: "#", icon: PhoneIcon },
 ];
 
-const playlistIds = ["20Rh8cqhAsvpL5rGZ19qqZ", "7GTwvfS41Q0EAUbOZmKFcH", "0Qd4PXjVn6VyqxUW5Ws9Ok", "2qUmxZfsE6mYcmtMN8MZ79", "6oPpajvXtHxogBdX6kE5rT", ];
+const playlistIds = [
+  "20Rh8cqhAsvpL5rGZ19qqZ",
+  "7GTwvfS41Q0EAUbOZmKFcH",
+  "0Qd4PXjVn6VyqxUW5Ws9Ok",
+  "2qUmxZfsE6mYcmtMN8MZ79",
+  "6oPpajvXtHxogBdX6kE5rT",
+];
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -125,11 +132,14 @@ const Header = () => {
         // Step 2: Fetch details for each playlist using its ID
         const fetchedPlaylists = await Promise.all(
           playlistIds.map(async (id) => {
-            const response = await fetch(`https://api.spotify.com/v1/playlists/${id}`, {
-              headers: {
-                Authorization: `Bearer ${access_token}`,
-              },
-            });
+            const response = await fetch(
+              `https://api.spotify.com/v1/playlists/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${access_token}`,
+                },
+              }
+            );
 
             if (!response.ok) {
               throw new Error(`Failed to fetch playlist with ID: ${id}`);
@@ -196,7 +206,6 @@ const Header = () => {
           </button>
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-
           <Popover className="relative">
             <PopoverButton className="flex items-center pt-3 gap-x-1 text-sm font-semibold text-gray-900">
               My Playlists
@@ -233,7 +242,9 @@ const Header = () => {
                         {playlist.name}
                         <span className="absolute inset-0" />
                       </a>
-                      <p className="mt-1 text-gray-600">{playlist.description}</p>
+                      <p className="mt-1 text-gray-600">
+                        {playlist.description}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -245,7 +256,10 @@ const Header = () => {
             Features
           </a>
 
-          <a href="/ratings" className="text-sm font-semibold text-orange-500 pt-3">
+          <a
+            href="/ratings"
+            className="text-sm font-semibold text-orange-500 pt-3"
+          >
             View Ratings
           </a>
         </PopoverGroup>
@@ -268,6 +282,7 @@ const Header = () => {
           <div className="relative group">
             <button
               onClick={() => {
+                signOut(); // Call the signOut function from next-auth
                 localStorage.removeItem("token"); // Remove the token from localStorage
                 router.push("/login"); // Redirect to the login page
               }}
@@ -344,7 +359,9 @@ const Header = () => {
                         />
                         <div>
                           <p>{playlist.name}</p>
-                          <p className="text-xs text-gray-600">{playlist.description}</p>
+                          <p className="text-xs text-gray-600">
+                            {playlist.description}
+                          </p>
                         </div>
                       </a>
                     ))}
@@ -368,6 +385,7 @@ const Header = () => {
               <div className="py-6">
                 <Button
                   onClick={() => {
+                    signOut(); // Call the signOut function from next-auth
                     localStorage.removeItem("token"); // Remove the token from localStorage
                     router.push("/login"); // Redirect to the login page
                   }}

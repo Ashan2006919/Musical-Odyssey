@@ -13,6 +13,7 @@ import { useTheme } from "next-themes";
 import MagicLoginPopup from "@/components/MagicLoginPopup"; // Import the new component
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -211,18 +212,21 @@ export default function RegisterPage() {
             alt="Register with Google"
             className="w-9 h-9 cursor-pointer hover:opacity-80"
             title="Register with Google"
+            onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
             src="/icons/spotify.png"
             alt="Register with Spotify"
             className="w-9 h-9 cursor-pointer hover:opacity-80"
             title="Register with Spotify"
+            onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
-            src="/icons/apple.png"
-            alt="Register with Apple"
+            src="/icons/github.png"
+            alt="Register with GitHub"
             className="w-9 h-9 cursor-pointer hover:opacity-80"
-            title="Register with Apple"
+            title="Register with GitHub"
+            onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
           />
         </div>
         <p className="mt-5">

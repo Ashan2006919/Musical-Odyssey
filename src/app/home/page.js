@@ -18,14 +18,24 @@ import albumsByGenre from "../../../critically_acclaimed_albums_by_genre.json"; 
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
+import { useSession } from "next-auth/react";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
   const [query, setQuery] = useState("");
   const [albumData, setAlbumData] = useState(null);
   const [randomAlbums, setRandomAlbums] = useState([]);
@@ -36,7 +46,6 @@ export default function Home() {
   const [selectedGenres, setSelectedGenres] = useState([]); // State for selected genres
   const [albumsBySelectedGenres, setAlbumsBySelectedGenres] = useState([]); // State to store albums for selected genres
   const [loadedAlbumIds, setLoadedAlbumIds] = useState(new Set()); // Set to keep track of loaded album IDs
-  const router = useRouter();
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
 

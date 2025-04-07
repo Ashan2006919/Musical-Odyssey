@@ -28,8 +28,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
 
 const RateAlbum = () => {
+
+    const { data: session, status } = useSession();
+    const router = useRouter();
+  
+    // Redirect to login if not authenticated
+    useEffect(() => {
+      if (status === "unauthenticated") {
+        router.push("/login");
+      }
+    }, [status, router]);
+
   const params = useParams();
   const albumId = params?.albumId;
   const [albumData, setAlbumData] = useState(null);
@@ -46,7 +58,6 @@ const RateAlbum = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State for confirmation dialog
   const [isPreviouslyReviewed, setIsPreviouslyReviewed] = useState(false); // State to track if the album was reviewed
   const { theme } = useTheme();
-  const router = useRouter(); // Initialize the router
   const [isSubmitConfirmationOpen, setIsSubmitConfirmationOpen] = useState(false); // State for submit confirmation dialog
   const [isNewRatingDialogOpen, setIsNewRatingDialogOpen] = useState(false); // State for new rating dialog
   const [isUpdateCompleteDialogOpen, setIsUpdateCompleteDialogOpen] = useState(false); // State for the new dialog

@@ -39,8 +39,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSearchParams } from "next/navigation"; // Import useSearchParams
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const RatingsPage = () => {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+  
+    // Redirect to login if not authenticated
+    useEffect(() => {
+      if (status === "unauthenticated") {
+        router.push("/login");
+      }
+    }, [status, router]);
+
   const searchParams = useSearchParams(); // Get query parameters
   const albumIdFromQuery = searchParams.get("albumId"); // Extract albumId from query
   const [ratingsData, setRatingsData] = useState([]);
@@ -101,7 +113,6 @@ const RatingsPage = () => {
         }
 
         setLoading(false);
-        toast.success("Ratings data loaded successfully!");
       } catch (error) {
         setError("Failed to load ratings data");
         setLoading(false);

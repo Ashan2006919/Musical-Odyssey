@@ -1,8 +1,6 @@
-// app/api/auth/register/route.js
-
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
-import { MongoClient } from 'mongodb';  // MongoDB client (adjust based on your setup)
+import { MongoClient } from 'mongodb';  // MongoDB client
 import multer from "multer";
 import { Readable } from "stream";
 import { GridFSBucket } from "mongodb"; // Optional: For storing images in MongoDB
@@ -14,6 +12,7 @@ let db, usersCollection;
 client.connect().then(() => {
   db = client.db('test');  // replace with your actual DB name
   usersCollection = db.collection('users');  // Replace with your collection name
+  const otpCollection = db.collection("otps");
 });
 
 // In-memory storage for OTPs (will reset if server restarts)
@@ -58,6 +57,7 @@ export async function POST(req) {
     const password = formData.get("password");
     const profileImage = formData.get("profileImage");
 
+    // Validate input fields
     if (!username || !email || !password) {
       return new Response(
         JSON.stringify({ message: "All fields are required." }),
@@ -65,6 +65,7 @@ export async function POST(req) {
       );
     }
 
+    // Check if the user already exists
     const existingUser = await usersCollection.findOne({ email });
     if (existingUser) {
       return new Response(
@@ -73,9 +74,11 @@ export async function POST(req) {
       );
     }
 
+    // Hash the password before storing
     const hashedPassword = await bcrypt.hash(password, 12);
     const verificationCode = generateOTP();
 
+    // Handle profile image upload (optional)
     let profileImageUrl = "/images/default-profile.png"; // Default profile picture
     if (profileImage && profileImage.size > 0) {
       const bucket = new GridFSBucket(db, { bucketName: "profileImages" });
@@ -86,13 +89,16 @@ export async function POST(req) {
       profileImageUrl = `/api/profileImages/${uploadStream.id}`;
     }
 
+    // Save OTP and user data temporarily for email verification
     verificationCodes[email] = {
       code: verificationCode,
       userData: { username, email, password: hashedPassword, profileImageUrl },
     };
 
+    // Send the OTP via email
     await sendVerificationEmail(email, verificationCode);
 
+    // Return response to inform user about OTP
     return new Response(
       JSON.stringify({
         message: "Registration successful. Please check your email for the verification code.",
@@ -108,13 +114,14 @@ export async function POST(req) {
   }
 }
 
-// Handle PUT request (email verification)
+// Handle PUT request for email verification
 export async function PUT(req) {
   try {
     const { email, verificationCode } = await req.json();
 
     console.log('Verifying OTP for:', email, 'with code:', verificationCode);
 
+    // Check if OTP exists for this email
     if (!verificationCodes[email]) {
       console.error('No OTP found for email:', email);
       return new Response(
@@ -123,6 +130,7 @@ export async function PUT(req) {
       );
     }
 
+    // Validate OTP
     if (verificationCodes[email].code !== verificationCode) {
       console.error('Invalid OTP code:', verificationCode, 'Expected:', verificationCodes[email].code);
       return new Response(
@@ -131,13 +139,19 @@ export async function PUT(req) {
       );
     }
 
+    // Extract user data and insert into MongoDB
     const userData = verificationCodes[email].userData;
 
+    // Insert verified user into the 'users' collection
     await usersCollection.insertOne({
-      ...userData,
-      verified: true,
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,  // The hashed password
+      profileImageUrl: userData.profileImageUrl,
+      verified: true,  // Mark as verified
     });
 
+    // Remove the OTP entry from in-memory store
     delete verificationCodes[email];
 
     return new Response(

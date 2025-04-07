@@ -13,6 +13,8 @@ import { useTheme } from "next-themes";
 import { FaEnvelope, FaLock, FaGoogle, FaSpotify, FaApple } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
+import { signIn } from "next-auth/react";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -30,13 +32,26 @@ export default function LoginPage() {
     toast.info("Processing your login. Please wait...");
 
     try {
-      await loginUser({ email, password });
-      toast.success("Login successful! Redirecting...");
-      setEmail("");
-      setPassword("");
-      setTimeout(() => {
-        router.push("/home"); // Redirect after successful login
-      }, 2000);
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+      console.log("Login result:", result); // Log the result for debugging
+      if (!result) {
+        toast.error("Something went wrong. Please try again.");
+        return;
+      }
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Login successful! Redirecting...");
+        setEmail("");
+        setPassword("");
+        setTimeout(() => {
+          router.push("/home"); // Redirect after successful login
+        }, 2000);
+      }
     } catch (err) {
       toast.error(err.message || "Invalid credentials. Please try again.");
     } finally {
@@ -109,18 +124,21 @@ export default function LoginPage() {
             alt="Login with Google"
             className="w-10 h-10 cursor-pointer hover:opacity-80"
             title="Login with Google"
+            onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
             src="/icons/spotify.png"
             alt="Login with Spotify"
             className="w-10 h-10 cursor-pointer hover:opacity-80"
             title="Login with Spotify"
+            onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
-            src="/icons/apple.png"
-            alt="Login with Apple"
-            className="w-10 h-10 cursor-pointer hover:opacity-80"
-            title="Login with Apple"
+            src="/icons/github.png"
+            alt="Register with GitHub"
+            className="w-9 h-9 cursor-pointer hover:opacity-80"
+            title="Register with GitHub"
+            onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
           />
         </div>
         <p className="mt-5">
@@ -134,3 +152,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
