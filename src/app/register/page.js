@@ -6,10 +6,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FaUserAlt, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaUserAlt, FaEnvelope, FaLock, FaPencilAlt } from "react-icons/fa"; // Import the pencil icon
 import { registerUser } from "../api/auth";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
+import MagicLoginPopup from "@/components/MagicLoginPopup"; // Import the new component
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -18,6 +21,8 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [showLoginPopup, setShowLoginPopup] = useState(false); // State for showing the pop-up
   const router = useRouter();
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
@@ -28,22 +33,60 @@ export default function RegisterPage() {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
 
+    // Show an info toast to indicate processing
+    toast.info("Processing your registration. Please wait...");
+
     try {
-      await registerUser({ username, email, password });
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-      router.push("/home"); // Redirect after successful registration
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append("password", password);
+      if (profileImage) {
+        formData.append("profileImage", profileImage);
+      }
+
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.message === "User already exists with this email.") {
+          setShowLoginPopup(true); // Show the login pop-up
+        } else {
+          toast.error(data.message || "Registration failed");
+        }
+      } else {
+        toast.success("Registration successful! Please check your email for the OTP.");
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setProfileImage(null);
+
+        router.push(`/otp-verification?email=${email}`);
+      }
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageClick = () => {
+    document.getElementById("profileImageInput").click();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
     }
   };
 
@@ -70,6 +113,40 @@ export default function RegisterPage() {
           </LineShadowText>
         </h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        {/* Profile Image Upload */}
+        <div className="relative mb-6 flex justify-center">
+          <div
+            className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden relative"
+            onClick={handleImageClick}
+          >
+            {profileImage ? (
+              <img
+                src={URL.createObjectURL(profileImage)}
+                alt="Profile Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src="/images/default-profile.png"
+                alt="Default Profile"
+                className="w-full h-full object-cover"
+              />
+            )}
+            {/* Pencil Icon */}
+            <div className="absolute bottom-2 right-2 bg-gray-500 rounded-full p-1 shadow-md">
+              <FaPencilAlt className="text-black" />
+            </div>
+          </div>
+          <input
+            id="profileImageInput"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+        </div>
+
         <form onSubmit={handleRegister} className="w-full max-w-sm">
           <div className="relative mb-8">
             <FaUserAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -126,7 +203,7 @@ export default function RegisterPage() {
           </Button>
         </form>
         <p className="mt-4">
-          - or - 
+          - or -
         </p>
         <div className="flex justify-center items-center mt-6 space-x-8">
           <img
@@ -155,6 +232,10 @@ export default function RegisterPage() {
           </a>
         </p>
       </div>
+
+      {/* Show the login pop-up if needed */}
+      {showLoginPopup && <MagicLoginPopup onClose={() => setShowLoginPopup(false)} />}
+      <ToastContainer /> {/* Add ToastContainer to render notifications */}
     </div>
   );
 }

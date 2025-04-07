@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
 const uri = process.env.MONGODB_URI;
 const options = {};
@@ -33,3 +34,15 @@ export async function getUsersCollection() {
   const { db } = await connectToDatabase();
   return db.collection("users");
 }
+
+const RatingHistorySchema = new mongoose.Schema({
+  albumId: { type: String, required: true }, // Album ID (can be ObjectId or string)
+  date: { type: Date, default: Date.now },  // Timestamp of the update
+  averageRating: { type: Number, required: true }, // New average rating
+});
+
+// Check if the model already exists before defining it
+const RatingHistory =
+  mongoose.models.RatingHistory || mongoose.model("RatingHistory", RatingHistorySchema);
+
+export default RatingHistory;

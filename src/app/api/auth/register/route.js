@@ -3,6 +3,9 @@
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import { MongoClient } from 'mongodb';  // MongoDB client (adjust based on your setup)
+import multer from "multer";
+import { Readable } from "stream";
+import { GridFSBucket } from "mongodb"; // Optional: For storing images in MongoDB
 
 // MongoDB connection (replace with your actual MongoDB URI)
 const client = new MongoClient(process.env.MONGODB_URI);
@@ -45,24 +48,25 @@ async function sendVerificationEmail(email, code) {
   await transporter.sendMail(mailOptions);
 }
 
-// Handle POST request (user registration)
+const upload = multer({ storage: multer.memoryStorage() });
+
 export async function POST(req) {
   try {
-    const { username, email, password } = await req.json();
+    const formData = await req.formData();
+    const username = formData.get("username");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const profileImage = formData.get("profileImage");
 
-    // Check if all fields are provided
     if (!username || !email || !password) {
-      console.error('Missing required fields:', { username, email, password });
       return new Response(
         JSON.stringify({ message: "All fields are required." }),
         { status: 400 }
       );
     }
 
-    // Check if user already exists in the database
     const existingUser = await usersCollection.findOne({ email });
     if (existingUser) {
-      console.error('User already exists:', email);
       return new Response(
         JSON.stringify({ message: "User already exists with this email." }),
         { status: 400 }
@@ -70,30 +74,33 @@ export async function POST(req) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const verificationCode = generateOTP();  // Generate a 6-digit OTP
+    const verificationCode = generateOTP();
 
-    // Store OTP and user data in memory
+    let profileImageUrl = "/images/default-profile.png"; // Default profile picture
+    if (profileImage && profileImage.size > 0) {
+      const bucket = new GridFSBucket(db, { bucketName: "profileImages" });
+      const uploadStream = bucket.openUploadStream(email);
+      const readableStream = Readable.from(profileImage.stream());
+      readableStream.pipe(uploadStream);
+
+      profileImageUrl = `/api/profileImages/${uploadStream.id}`;
+    }
+
     verificationCodes[email] = {
       code: verificationCode,
-      userData: { username, email, password: hashedPassword },
+      userData: { username, email, password: hashedPassword, profileImageUrl },
     };
 
-    // Send verification email
     await sendVerificationEmail(email, verificationCode);
 
-    // Log OTP for debugging
-    console.log('Generated OTP for email:', email, 'is:', verificationCode);
-
-    // After registration, redirect to the OTP verification page with the OTP code in the query string
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         message: "Registration successful. Please check your email for the verification code.",
-        otp: verificationCode, // Pass OTP code here to verify
       }),
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error during registration:', error);
+    console.error("Error during registration:", error);
     return new Response(
       JSON.stringify({ message: "Something went wrong." }),
       { status: 500 }
@@ -106,46 +113,44 @@ export async function PUT(req) {
   try {
     const { email, verificationCode } = await req.json();
 
-    // Log the input for debugging
     console.log('Verifying OTP for:', email, 'with code:', verificationCode);
 
     if (!verificationCodes[email]) {
       console.error('No OTP found for email:', email);
       return new Response(
-        JSON.stringify({ message: "No verification request found for this email." }),
+        JSON.stringify({ success: false, message: "No verification request found for this email." }),
         { status: 400 }
       );
     }
 
-    // Ensure both are strings to avoid type mismatch
     if (verificationCodes[email].code !== verificationCode) {
       console.error('Invalid OTP code:', verificationCode, 'Expected:', verificationCodes[email].code);
       return new Response(
-        JSON.stringify({ message: "Invalid verification code." }),
+        JSON.stringify({ success: false, message: "Invalid verification code." }),
         { status: 400 }
       );
     }
 
-    // Get user data from temporary storage
     const userData = verificationCodes[email].userData;
 
-    // Store user data in the database
     await usersCollection.insertOne({
       ...userData,
-      verified: true,  // Mark user as verified
+      verified: true,
     });
 
-    // Clean up the temporary store
     delete verificationCodes[email];
 
     return new Response(
-      JSON.stringify({ message: "Account verified and registration completed!" }),
+      JSON.stringify({
+        success: true,
+        message: "Account verified and registration completed!",
+      }),
       { status: 200 }
     );
   } catch (error) {
     console.error('Error during verification:', error);
     return new Response(
-      JSON.stringify({ message: "Something went wrong." }),
+      JSON.stringify({ success: false, message: "Something went wrong." }),
       { status: 500 }
     );
   }

@@ -11,11 +11,12 @@ import { loginUser } from "../api/auth";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
 import { FaEnvelope, FaLock, FaGoogle, FaSpotify, FaApple } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const theme = useTheme();
@@ -23,16 +24,21 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+
+    // Show an info toast to indicate processing
+    toast.info("Processing your login. Please wait...");
 
     try {
       await loginUser({ email, password });
+      toast.success("Login successful! Redirecting...");
       setEmail("");
       setPassword("");
-      router.push("/home"); // Redirect after successful login
+      setTimeout(() => {
+        router.push("/home"); // Redirect after successful login
+      }, 2000);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +66,6 @@ export default function LoginPage() {
             Music Odyssey!
           </LineShadowText>
         </h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleLogin} className="w-full max-w-sm">
           <div className="relative mb-8">
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -125,6 +130,7 @@ export default function LoginPage() {
           </a>
         </p>
       </div>
+      <ToastContainer /> {/* Add ToastContainer to render notifications */}
     </div>
   );
 }

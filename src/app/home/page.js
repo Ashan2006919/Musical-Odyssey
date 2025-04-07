@@ -262,7 +262,7 @@ export default function Home() {
           className="italic text-primary ml-3 whitespace-nowrap"
           shadowColor={shadowColor}
         >
-          Music Odyssey!
+          Musical Odyssey!
         </LineShadowText>
       </h1>
 

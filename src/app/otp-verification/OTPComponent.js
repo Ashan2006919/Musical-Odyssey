@@ -1,6 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic"; // Prevent static rendering issues on Vercel
-
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +21,9 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import react-toastify styles
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -36,38 +37,40 @@ export default function OTPComponent() {
     defaultValues: { pin: "" },
   });
 
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
 
-  const sentOtpCode = searchParams.get("otp");
   const email = searchParams.get("email");
 
   const onSubmit = (data) => {
-    setErrorMessage("");
-    setSuccessMessage("");
-
     fetch("/api/auth/register", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, verificationCode: data.pin }),
+      body: JSON.stringify({ email, verificationCode: data.pin }), // Only send the email and OTP
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.message.includes("verified")) {
-          setSuccessMessage("Your account has been successfully verified.");
-          router.push("/home");
+      .then(async (res) => {
+        const responseData = await res.json();
+
+        if (!res.ok) {
+          toast.error(responseData.message || "Verification failed.");
+          return;
+        }
+
+        if (responseData?.success) {
+          toast.success("Your account has been successfully verified!");
+          setTimeout(() => {
+            router.push("/home");
+          }, 2000);
         } else {
-          setErrorMessage(data.message);
+          toast.error(responseData.message || "Unexpected response.");
         }
       })
-      .catch(() =>
-        setErrorMessage("Something went wrong. Please try again later.")
-      );
+      .catch((err) => {
+        console.error("OTP verification error:", err);
+        toast.error(err.message || "Something went wrong. Please try again later.");
+      });
   };
 
   return (
@@ -119,17 +122,6 @@ export default function OTPComponent() {
               )}
             />
 
-            {errorMessage && (
-              <div className="text-red-600 text-center text-xl mt-4">
-                {errorMessage}
-              </div>
-            )}
-            {successMessage && (
-              <div className="text-green-600 text-center text-xl mt-4">
-                {successMessage}
-              </div>
-            )}
-
             <Button
               type="submit"
               className="w-full py-4 text-2xl rounded-lg transition h-10 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
@@ -139,6 +131,8 @@ export default function OTPComponent() {
           </form>
         </Form>
       </div>
+
+      <ToastContainer /> {/* Ensure ToastContainer is in your JSX to display the toast notifications */}
     </div>
   );
 }

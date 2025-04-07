@@ -1,4 +1,35 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp } from "lucide-react";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const fakeChartData = [
+  { month: "January", desktop: 186 },
+  { month: "February", desktop: 305 },
+  { month: "March", desktop: 237 },
+  { month: "April", desktop: 73 },
+  { month: "May", desktop: 209 },
+  { month: "June", desktop: 214 },
+];
+
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "hsl(var(--chart-1))",
+  },
+};
 
 export function AlbumSkeletonRandom() {
   return (
@@ -61,6 +92,36 @@ export function RatingSkeleton() {
       <div className="mt-4">
         <Skeleton className="h-6 w-1/2" />
       </div>
+    </div>
+  );
+}
+
+export function ChartSkeleton() {
+  return (
+    <div className="w-full h-64 flex items-center justify-center">
+      <LineChart
+        width={500}
+        height={300}
+        data={fakeChartData}
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        className="opacity-50 blur-sm" // Add opacity and blur to create a shaded effect
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 0, 0, 0.1)" />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tick={{ fill: "rgba(0, 0, 0, 0.3)" }} // Faded tick labels
+        />
+        <Line
+          type="natural"
+          dataKey="desktop"
+          stroke="rgba(0, 0, 0, 0.3)" // Faded line color
+          strokeWidth={2}
+          dot={false}
+        />
+      </LineChart>
     </div>
   );
 }
