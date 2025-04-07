@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // 👈 Important for MongoDB compatibility
+
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import { MongoClient } from 'mongodb';  // MongoDB client
