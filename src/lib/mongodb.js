@@ -12,16 +12,11 @@ if (!uri) {
 let client;
 let clientPromise;
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
+if (!global._mongoClientPromise) {
   client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  global._mongoClientPromise = client.connect();
 }
+clientPromise = global._mongoClientPromise;
 
 // --- Helpers for raw MongoDB usage ---
 export async function connectToDatabase() {
@@ -30,10 +25,7 @@ export async function connectToDatabase() {
   return { client, db };
 }
 
-export async function getUsersCollection() {
-  const { db } = await connectToDatabase();
-  return db.collection("users");
-}
+export { clientPromise };  // Export the clientPromise for NextAuth
 
 // --- Mongoose Setup & Schema ---
 const MONGOOSE_URI = process.env.MONGODB_URI;
@@ -43,10 +35,8 @@ if (!MONGOOSE_URI) {
 }
 
 if (!mongoose.connection.readyState) {
-  mongoose.connect(MONGOOSE_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  // No need for useNewUrlParser and useUnifiedTopology anymore
+  mongoose.connect(MONGOOSE_URI);
 }
 
 const RatingHistorySchema = new mongoose.Schema({
@@ -60,4 +50,3 @@ const RatingHistory =
 
 // --- Exports ---
 export default RatingHistory;
-export { clientPromise };

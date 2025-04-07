@@ -179,7 +179,7 @@ const Header = () => {
         className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
-          <a href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
+          <a href="/home" className="-m-1.5 p-1.5 flex items-center gap-3">
             <img
               alt="Odyssey Music Logo"
               src="/icons/musical-odyssey-md.png"
@@ -284,7 +284,7 @@ const Header = () => {
               onClick={() => {
                 signOut(); // Call the signOut function from next-auth
                 localStorage.removeItem("token"); // Remove the token from localStorage
-                router.push("/login"); // Redirect to the login page
+                router.push("/"); // Redirect to the login page
               }}
               className="p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all"
             >
@@ -307,7 +307,7 @@ const Header = () => {
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
           <div className="flex items-center justify-between">
-            <a href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
+            <a href="/home" className="-m-1.5 p-1.5 flex items-center gap-3">
               <img
                 alt="Odyssey Music Logo"
                 src="/icons/musical-odyssey-md.png"
@@ -387,7 +387,7 @@ const Header = () => {
                   onClick={() => {
                     signOut(); // Call the signOut function from next-auth
                     localStorage.removeItem("token"); // Remove the token from localStorage
-                    router.push("/login"); // Redirect to the login page
+                    router.push("/"); // Redirect to the login page
                   }}
                   className="px-4 py-2 text-lg flex items-center justify-center gap-2 transition-all bg-red-500 hover:bg-red-600 text-white rounded-lg"
                 >

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
+import { signIn } from "next-auth/react";
 
 export default function Home() {
   const { resolvedTheme } = useTheme();
@@ -45,7 +46,10 @@ export default function Home() {
             <Button className="px-6 py-2 text-xl w-full h-full">Login</Button>
           </Link>
           <Link href="/register">
-            <Button variant="outline" className="px-6 py-2 text-xl w-full h-full">
+            <Button
+              variant="outline"
+              className="px-6 py-2 text-xl w-full h-full"
+            >
               Register
             </Button>
           </Link>
@@ -58,18 +62,21 @@ export default function Home() {
             alt="Login with Google"
             className="w-10 h-10 cursor-pointer hover:opacity-80"
             title="Login with Google"
+            onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
             src="/icons/spotify.png"
             alt="Login with Spotify"
             className="w-10 h-10 cursor-pointer hover:opacity-80"
             title="Login with Spotify"
+            onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
           />
           <img
-            src="/icons/apple.png"
-            alt="Login with Apple"
-            className="w-10 h-10 cursor-pointer hover:opacity-80"
-            title="Login with Apple"
+            src="/icons/github.png"
+            alt="Register with GitHub"
+            className="w-9 h-9 cursor-pointer hover:opacity-80"
+            title="Register with GitHub"
+            onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
           />
         </div>
       </div>
