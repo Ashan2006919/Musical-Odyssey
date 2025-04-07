@@ -1,21 +1,14 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { MongoClient } from "mongodb";
 import bcrypt from "bcryptjs";
 import GoogleProvider from "next-auth/providers/google";
 import SpotifyProvider from "next-auth/providers/spotify";
 import GitHubProvider from "next-auth/providers/github";
 
-let MongoClient;
-let client;
-
-// Ensure MongoDB is only used on the server
-if (typeof window === 'undefined') {
-  MongoClient = require("mongodb").MongoClient;
-
-  // MongoDB setup
-  const uri = process.env.MONGODB_URI;
-  client = new MongoClient(uri);
-}
+// MongoDB setup
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
 
 // Connect to MongoDB
 async function connectToDatabase() {
