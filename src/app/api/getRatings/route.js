@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // 👈 Important for MongoDB compatibility
+
 import dbConnect from '@/lib/dbConnect';
 import Rating from '@/models/Rating';
 
