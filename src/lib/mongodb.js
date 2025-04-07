@@ -1,15 +1,16 @@
 import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 
+// --- MongoClient for NextAuth and raw DB usage ---
 const uri = process.env.MONGODB_URI;
 const options = {};
 
-let client;
-let clientPromise;
-
-if (!process.env.MONGODB_URI) {
+if (!uri) {
   throw new Error("Please add your Mongo URI to .env.local");
 }
+
+let client;
+let clientPromise;
 
 if (process.env.NODE_ENV === "development") {
   if (!global._mongoClientPromise) {
@@ -22,27 +23,41 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
-// Function to connect to the database
+// --- Helpers for raw MongoDB usage ---
 export async function connectToDatabase() {
   const client = await clientPromise;
-  const db = client.db(process.env.MONGODB_DB);
+  const db = client.db(process.env.MONGODB_DB || "test");
   return { client, db };
 }
 
-// Function to get the users collection
 export async function getUsersCollection() {
   const { db } = await connectToDatabase();
   return db.collection("users");
 }
 
+// --- Mongoose Setup & Schema ---
+const MONGOOSE_URI = process.env.MONGODB_URI;
+
+if (!MONGOOSE_URI) {
+  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
+}
+
+if (!mongoose.connection.readyState) {
+  mongoose.connect(MONGOOSE_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+}
+
 const RatingHistorySchema = new mongoose.Schema({
-  albumId: { type: String, required: true }, // Album ID (can be ObjectId or string)
-  date: { type: Date, default: Date.now },  // Timestamp of the update
-  averageRating: { type: Number, required: true }, // New average rating
+  albumId: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  averageRating: { type: Number, required: true },
 });
 
-// Check if the model already exists before defining it
 const RatingHistory =
   mongoose.models.RatingHistory || mongoose.model("RatingHistory", RatingHistorySchema);
 
+// --- Exports ---
 export default RatingHistory;
+export { clientPromise };
