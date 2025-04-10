@@ -1,6 +1,6 @@
+import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 
-// Ensure MongoDB URI is defined
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB = process.env.MONGODB_DB;
 
@@ -10,6 +10,22 @@ if (!MONGODB_URI) {
 
 if (!MONGODB_DB) {
   throw new Error("Please add your MongoDB database name to .env.local");
+}
+
+// MongoClient for raw MongoDB operations
+let client;
+let clientPromise;
+
+if (!global._mongoClientPromise) {
+  client = new MongoClient(MONGODB_URI);
+  global._mongoClientPromise = client.connect();
+}
+clientPromise = global._mongoClientPromise;
+
+export async function connectToDatabase() {
+  const client = await clientPromise;
+  const db = client.db(MONGODB_DB);
+  return { client, db };
 }
 
 // Mongoose Connection
@@ -82,4 +98,4 @@ export async function updateAlbumRating(albumId, trackRatings) {
   }
 }
 
-export default Album;
+export default mongoose;
