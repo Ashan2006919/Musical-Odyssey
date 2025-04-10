@@ -1,10 +1,12 @@
 import { S3Client, ListObjectsCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-// Load environment variables from .env.local
-dotenv.config({ path: './.env.local' });
+// Conditionally load dotenv in development
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv = require('dotenv');
+  dotenv.config({ path: './.env.local' });
+}
 
 // Log environment variables to ensure they're loaded
 console.log('AWS_ACCESS_KEY_ID:', process.env.AWS_ACCESS_KEY_ID || 'Not Loaded');

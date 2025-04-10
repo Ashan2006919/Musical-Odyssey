@@ -187,35 +187,43 @@ const ProfilePage = () => {
       setUploading(true);
 
       try {
-        const s3Client = new S3Client({
-          region: process.env.NEXT_PUBLIC_AWS_REGION,
-          credentials: {
-            accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY,
-          },
-        });
-
-        const fileName = `${user.omid}-${file.name}`;
+        const fileName = file.name;
         const mimeType = file.type;
 
-        const fileBlob = new Blob([file], { type: mimeType });
+        // Read the file as base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const fileContent = reader.result.split(",")[1]; // Get base64 content
 
-        const command = new PutObjectCommand({
-          Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
-          Key: fileName,
-          Body: fileBlob,
-          ContentType: mimeType,
-        });
+          const response = await fetch("/api/uploadImage", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileName,
+              fileType: mimeType,
+              fileContent,
+              userOmid: user.omid,
+            }),
+          });
 
-        await s3Client.send(command);
+          if (!response.ok) {
+            const data = await response.json();
+            alert(data.message || "Failed to upload image.");
+            return;
+          }
 
-        const newImageUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${fileName}`;
+          const { imageUrl } = await response.json();
 
-        if (update) {
-          await update({ image: newImageUrl });
-        }
+          if (update) {
+            await update({ image: imageUrl });
+          }
 
-        alert("Profile image updated successfully!");
+          alert("Profile image updated successfully!");
+        };
+
+        reader.readAsDataURL(file); // Read the file as a data URL
       } catch (error) {
         console.error("Error updating profile image:", error);
         alert("An error occurred while updating the profile image.");
