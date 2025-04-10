@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import GoogleProvider from "next-auth/providers/google";
 import SpotifyProvider from "next-auth/providers/spotify";
 import GitHubProvider from "next-auth/providers/github";
+import { v4 as uuidv4 } from "uuid";
 
 // MongoDB setup
 const uri = process.env.MONGODB_URI;
@@ -21,12 +22,7 @@ async function connectToDatabase() {
 
 // Function to generate a unique OMID
 function generateOMID() {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let omid = "";
-  for (let i = 0; i < 12; i++) {
-    omid += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return omid;
+  return uuidv4(); // Use UUID for guaranteed uniqueness
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
