@@ -9,10 +9,20 @@ export async function middleware(req) {
   console.log("Request headers:", req.headers);
 
   if (!token) {
+    console.error("Token not found. Redirecting to login.");
     return NextResponse.redirect(new URL(`/login?error=Unauthorized`, req.url));
   }
 
-  return NextResponse.next();
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (token.exp && token.exp < currentTime) {
+    console.error("Token expired:", token);
+    return NextResponse.redirect(new URL(`/login?error=SessionExpired`, req.url));
+  }
+
+  // Prevent caching of protected routes
+  const res = NextResponse.next();
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
 
 export const config = {
