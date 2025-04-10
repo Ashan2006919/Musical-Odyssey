@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import axios from "axios";
@@ -694,4 +695,12 @@ const RatingsPage = () => {
   );
 };
 
-export default RatingsPage;
+const RatingsPageWrapper = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RatingsPage />
+    </Suspense>
+  );
+};
+
+export default RatingsPageWrapper;
