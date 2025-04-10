@@ -1,4 +1,3 @@
-import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -12,29 +11,33 @@ if (!MONGODB_DB) {
   throw new Error("Please add your MongoDB database name to .env.local");
 }
 
-// MongoClient for raw MongoDB operations
-let client;
-let clientPromise;
+// Global cache for Mongoose connection
+let cached = global.mongoose;
 
-if (!global._mongoClientPromise) {
-  client = new MongoClient(MONGODB_URI);
-  global._mongoClientPromise = client.connect();
-}
-clientPromise = global._mongoClientPromise;
-
-export async function connectToDatabase() {
-  const client = await clientPromise;
-  const db = client.db(MONGODB_DB);
-  return { client, db };
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
-// Mongoose Connection
-if (!mongoose.connection.readyState) {
-  mongoose.connect(MONGODB_URI, {
-    dbName: MONGODB_DB,
-  }).catch((err) => {
-    console.error("Failed to connect to MongoDB with Mongoose:", err);
-  });
+async function connectToDatabase() {
+  if (cached.conn) {
+    console.log("Using cached MongoDB connection");
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    console.log("Creating new MongoDB connection");
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      dbName: MONGODB_DB,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }).then((mongoose) => {
+      console.log("Connected to MongoDB:", mongoose.connection.name);
+      return mongoose;
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
 
 // Album Schema
@@ -98,4 +101,4 @@ export async function updateAlbumRating(albumId, trackRatings) {
   }
 }
 
-export default mongoose;
+export default connectToDatabase;

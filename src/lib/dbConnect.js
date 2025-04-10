@@ -1,11 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
-  );
+  throw new Error("Please define the MONGODB_URI environment variable in .env.local");
 }
 
 let cached = global.mongoose;
@@ -20,20 +18,17 @@ async function dbConnect() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }).then((mongoose) => {
+      console.log("Connected to MongoDB:", mongoose.connection.name);
       return mongoose;
     });
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 }
 
-dbConnect(); // Ensure the database connection is established
-
-const RatingSchema = new mongoose.Schema({
-  albumId: { type: String, required: true, unique: true },
-  ratings: { type: Map, of: String, required: true },
-  averageRating: { type: String, required: false }, // Add this field
-});
-
-export default mongoose.models.Rating || mongoose.model("Rating", RatingSchema);
+export default dbConnect;

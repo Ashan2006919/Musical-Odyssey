@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import axios from "axios";
 import { MagicCard } from "@/components/magicui/magic-card";
@@ -51,18 +51,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"; // Import useRouter
 
 const RatingsPage = () => {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <RatingsPageContent />
-    </Suspense>
-  );
-};
-
-const RatingsPageContent = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams(); // Use inside the Suspense boundary
-  const albumIdFromQuery = searchParams.get("albumId");
+  const searchParams = useSearchParams(); // Get query parameters
+  const albumIdFromQuery = searchParams.get("albumId"); // Extract albumId from query
   const [ratingsData, setRatingsData] = useState([]);
   const [filteredRatings, setFilteredRatings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -128,6 +120,8 @@ const RatingsPageContent = () => {
             return { ...rating, trackDetails, albumId: rating.albumId };
           })
         );
+
+        console.log("Updated Ratings:", updatedRatings);
 
         setRatingsData(updatedRatings);
 
@@ -361,6 +355,8 @@ const RatingsPageContent = () => {
   }
 
   if (error) return <p>{error}</p>;
+
+  console.log("Filtered Ratings:", filteredRatings);
 
   return (
     <div className="py-5">
