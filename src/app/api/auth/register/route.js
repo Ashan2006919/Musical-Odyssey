@@ -55,8 +55,14 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Function to generate a unique OMID
 function generateOMID() {
-  return uuidv4(); // Use UUID for guaranteed uniqueness
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let omid = "";
+  for (let i = 0; i < 12; i++) {
+    omid += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return omid;
 }
 
 // Send verification email
