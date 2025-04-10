@@ -2,8 +2,9 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FaSignInAlt } from "react-icons/fa";
@@ -20,9 +21,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      // Redirect to the home page if the user is already logged in
+      router.push("/home");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return <p>Loading...</p>; // Show a loading state while checking the session
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -62,7 +75,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* Top/Left side for the image */}
-      <div className="w-full md:w-1/2 bg-gray-100 flex items-center justify-center mb-6 md:mb-0">
+      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
         <img
           src="/images/boy-with-headphones-listening-to.jpg"
           alt="Register Illustration"
@@ -116,30 +129,35 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="mt-4">
-          - or -
+          - or continue with -
         </p>
         <div className="flex justify-center items-center mt-6 space-x-8">
+          <Button variant="outline" className="w-full py-5">
           <img
             src="/icons/google.png"
             alt="Login with Google"
-            className="w-10 h-10 cursor-pointer hover:opacity-80"
+            className="w-8 h-auto cursor-pointer hover:opacity-80"
             title="Login with Google"
             onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
           />
+          </Button>
+          <Button variant="outline" className="w-full py-5">
           <img
             src="/icons/spotify.png"
             alt="Login with Spotify"
-            className="w-10 h-10 cursor-pointer hover:opacity-80"
+            className="w-8 h-auto cursor-pointer hover:opacity-80"
             title="Login with Spotify"
             onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
-          />
+          /></Button>
+          <Button variant="outline" className="w-full py-5">
           <img
             src="/icons/github.png"
             alt="Register with GitHub"
-            className="w-9 h-9 cursor-pointer hover:opacity-80"
+            className="w-8 h-auto cursor-pointer hover:opacity-80"
             title="Register with GitHub"
             onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
           />
+          </Button>
         </div>
         <p className="mt-5">
           Don&apos;t have an account?{" "}

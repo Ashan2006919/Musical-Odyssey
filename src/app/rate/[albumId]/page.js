@@ -29,16 +29,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSession } from "next-auth/react";
+import { AlbumInfoSkeleton, TrackListSkeleton, AvailableOnSkeleton } from "@/components/AlbumSkeleton";
 
 const RateAlbum = () => {
 
-    const { data: session, status } = useSession();
+    
     const router = useRouter();
-  
+    const { data: session, status } = useSession();
+
     // Redirect to login if not authenticated
     useEffect(() => {
       if (status === "unauthenticated") {
-        router.push("/login");
+        router.push("/");
       }
     }, [status, router]);
 
@@ -210,20 +212,27 @@ const RateAlbum = () => {
 
   const handleConfirmSubmit = async () => {
     setIsSubmitConfirmationOpen(false); // Close the confirmation dialog
-
+  
     const avgRating = calculateAverageRating();
     setAverageRating(avgRating);
-
+  
     if (!avgRating) {
       toast.warning("No valid ratings to calculate an average.");
       return;
     }
-
+  
+    if (!session?.user?.omid) {
+      toast.error("User ID (OMID) is missing. Please log in again.");
+      return;
+    }
+  
     try {
       // Check if the album has been reviewed before
-      const response = await axios.get(`/api/ratings/history?albumId=${albumId}`);
+      const response = await axios.get(
+        `/api/ratings/history?albumId=${albumId}&userOmid=${session.user.omid}` // Include userOmid
+      );
       const { history } = response.data;
-
+  
       if (history.length > 0) {
         // Album has been reviewed before
         setIsPreviouslyReviewed(true);
@@ -243,16 +252,26 @@ const RateAlbum = () => {
   };
 
   const saveRatings = async (avgRating) => {
+    if (!session?.user?.omid) {
+      toast.error("User ID (OMID) is missing. Please log in again.");
+      return;
+    }
+  
     try {
       const response = await axios.post("/api/saveRatings", {
         albumId, // Use Spotify albumId
         ratings,
         averageRating: avgRating,
+        userOmid: session.user.omid, // Include OMID
       });
-
+  
       if (response.status === 200) {
         toast.success("Ratings saved successfully");
         setIsNewRatingDialogOpen(true); // Open the new rating dialog
+      } else if (response.status === 409) {
+        // Handle duplicate rating
+        toast.warning("You have already rated this album. Please update your rating instead.");
+        setIsDialogOpen(true); // Open the dialog to update ratings
       } else {
         toast.error("Failed to save ratings");
       }
@@ -263,13 +282,19 @@ const RateAlbum = () => {
   };
 
   const updateRatings = async (avgRating) => {
+    if (!session?.user?.omid) {
+      toast.error("User ID (OMID) is missing. Please log in again.");
+      return;
+    }
+  
     try {
       const response = await axios.post("/api/updateRatings", {
         albumId, // Use Spotify albumId
         ratings,
         averageRating: avgRating,
+        userOmid: session.user.omid, // Include OMID
       });
-
+  
       if (response.status === 200) {
         toast.success("Ratings updated successfully");
         setIsUpdateCompleteDialogOpen(true); // Open the new dialog
@@ -325,17 +350,22 @@ const RateAlbum = () => {
   };
 
   const handleCheckReviewHistory = async () => {
+    if (!session?.user?.omid) {
+      toast.error("User ID (OMID) is missing. Please log in again.");
+      return;
+    }
+  
     try {
-      const response = await axios.get(`/api/ratings/history?albumId=${albumId}`);
+      const response = await axios.get(
+        `/api/ratings/history?albumId=${albumId}&userOmid=${session.user.omid}` // Include userOmid
+      );
       const { history } = response.data;
-
+  
       if (history.length > 0) {
-        // Album has been reviewed before
         setIsPreviouslyReviewed(true);
-        setIsDialogOpen(true); // Open the dialog for previously reviewed albums
+        setIsDialogOpen(true);
       } else {
-        // Album has not been reviewed before
-        setIsSubmitConfirmationOpen(true); // Open the confirmation dialog
+        setIsSubmitConfirmationOpen(true);
       }
     } catch (error) {
       console.error("Error checking review history:", error);
@@ -343,226 +373,283 @@ const RateAlbum = () => {
     }
   };
 
+  const handleSubmitRating = async () => {
+    if (!session?.user?.omid) {
+      toast.error("User ID (OMID) is missing. Please log in again.");
+      return;
+    }
+  
+    try {
+      setIsSubmitClicked(true);
+  
+      // Calculate average rating
+      const totalRating = Object.values(ratings).reduce(
+        (sum, rating) => sum + (parseFloat(rating) || 0),
+        0
+      );
+      const avgRating =
+        Object.values(ratings).filter((rating) => rating).length > 0
+          ? totalRating /
+            Object.values(ratings).filter((rating) => rating).length
+          : 0;
+  
+      setAverageRating(avgRating);
+  
+      // Prepare data to save
+      const ratingData = {
+        albumId,
+        albumName: albumData?.name,
+        artistName: albumData?.artists?.[0]?.name,
+        ratings,
+        averageRating: avgRating,
+        userOmid: session.user.omid, // Include OMID
+        timestamp: new Date().toISOString(),
+      };
+  
+      // Save to database
+      const response = await axios.post("/api/ratings/save", ratingData);
+  
+      if (response.status === 200) {
+        toast.success("Rating saved successfully!");
+        router.push("/profile"); // Redirect to profile or another page
+      } else {
+        toast.error("Failed to save rating. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving rating:", error);
+      toast.error("An error occurred while saving the rating.");
+    } finally {
+      setIsSubmitClicked(false);
+    }
+  };
+
   if (!albumId)
     return <p className="text-center text-red-500">Error: No Album ID Found</p>;
-  if (loading)
-    return (
-      <p className="text-center text-gray-500 mt-10">
-        Loading album details...
-      </p>
-    );
-  if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
 
   return (
     <div className="relative min-h-screen bg-white">
       <div className="max-w-7xl mx-auto py-10 px-6">
+        {/* Title text should always be displayed */}
         <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-5">
           Let's Rate an
           <LineShadowText
             className="italic text-primary ml-3 whitespace-nowrap"
             shadowColor={shadowColor}
           >
-            Album !
+            Album!
           </LineShadowText>
         </h1>
 
-        <MagicCard
-          className="cursor-pointer flex-col whitespace-nowrap"
-          gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10">
-            <div className="flex justify-center items-center">
-              <img
-                src={albumData.images[0].url}
-                alt={albumData.name}
-                className="w-64 rounded-lg transition-transform hover:scale-105"
-              />
-            </div>
-
-            <div className="flex flex-col justify-center p-5">
-              <div className="mb-4">
-                <p className="text-2xl font-semibold text-black">
-                  {albumData.name}
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  Artists:{" "}
-                  <span className="font-normal">
-                    {albumData.artists[0].name}
-                  </span>
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  Release Date:{" "}
-                  <span className="font-normal">
-                    {" "}
-                    {albumData.release_date}{" "}
-                  </span>
-                </p>
-              </div>
-
-              <div className="my-2">
-                <p className="text-lg text-gray-700 font-semibold mt-2">
-                  Producers:
-                  <span className="block break-words text-wrap font-normal text-sm">
-                    {producers}
-                  </span>
-                </p>
-                <p className="text-lg text-gray-700 font-semibold mt-1">
-                  Writers:
-                  <span className="block break-words text-wrap font-normal text-sm">
-                    {writers}
-                  </span>
-                </p>
-              </div>
-            </div>
+        {/* Conditional rendering for loading state */}
+        {loading ? (
+          <div className="space-y-10">
+            <AlbumInfoSkeleton />
+            <AvailableOnSkeleton />
+            <TrackListSkeleton />
           </div>
-        </MagicCard>
+        ) : error ? (
+          <p className="text-center text-red-500 mt-10">{error}</p>
+        ) : (
+          <>
+            {/* Render the rest of the content when data is loaded */}
+            <MagicCard
+              className="cursor-pointer flex-col whitespace-nowrap"
+              gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10">
+                <div className="flex justify-center items-center">
+                  <img
+                    src={albumData.images[0].url}
+                    alt={albumData.name}
+                    className="w-64 rounded-lg transition-transform hover:scale-105"
+                  />
+                </div>
 
-        <div className="my-10">
-          <h2 className="text-2xl font-semibold text-center mb-4 text-black">
-            Available on
-          </h2>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              asChild
-              className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-md text-white rounded-lg"
-            >
-              <a
-                href={`https://open.spotify.com/album/${albumId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaSpotify className="text-3xl" /> Listen on Spotify
-              </a>
-            </Button>
-            <Button
-              asChild
-              className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-black hover:bg-gray-800 text-md text-white rounded-lg"
-            >
-              <a
-                href={`https://music.apple.com/album/${albumId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaApple className="text-3xl" /> Listen on Apple Music
-              </a>
-            </Button>
-            <Button
-              asChild
-              className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-red-600 hover:bg-red-700 text-md text-white rounded-lg"
-            >
-              <a
-                href={`https://music.youtube.com/album/${albumId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaYoutube className="text-3xl" /> Listen on YouTube Music
-              </a>
-            </Button>
-            <Button
-              asChild
-              className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-orange-500 hover:bg-orange-600 text-md text-white rounded-lg"
-            >
-              <a
-                href={`https://soundcloud.com/${albumId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaSoundcloud className="text-3xl" /> Listen on SoundCloud
-              </a>
-            </Button>
-          </div>
-        </div>
-        <MagicCard
-          className="cursor-pointer flex-col whitespace-nowrap py-2"
-          gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
-        >
-          <div className="overflow-x-auto shadow-md rounded-lg">
-            <table className="min-w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 text-left">#</th>
-                  <th className="px-6 py-3 text-left">Track</th>
-                  <th className="px-6 py-3 text-left">Duration</th>
-                  <th className="px-6 py-3 text-left">Rating</th>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectAllChecked}
-                      onChange={handleSelectAll}
-                      className="w-5 h-5"
-                    />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {albumData.tracks.items.map((track, index) => (
-                  <tr
-                    key={track.id}
-                    className={
-                      grayedOutTracks.has(track.id) ? "opacity-50" : ""
-                    } // Add gray-out effect
+                <div className="flex flex-col justify-center p-5">
+                  <div className="mb-4">
+                    <p className="text-2xl font-semibold text-black">
+                      {albumData.name}
+                    </p>
+                    <p className="text-gray-700 font-semibold">
+                      Artists:{" "}
+                      <span className="font-normal">
+                        {albumData.artists[0].name}
+                      </span>
+                    </p>
+                    <p className="text-gray-700 font-semibold">
+                      Release Date:{" "}
+                      <span className="font-normal">
+                        {albumData.release_date}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="my-2">
+                    <p className="text-lg text-gray-700 font-semibold mt-2">
+                      Producers:
+                      <span className="block break-words text-wrap font-normal text-sm">
+                        {producers}
+                      </span>
+                    </p>
+                    <p className="text-lg text-gray-700 font-semibold mt-1">
+                      Writers:
+                      <span className="block break-words text-wrap font-normal text-sm">
+                        {writers}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </MagicCard>
+
+            <div className="my-10">
+              <h2 className="text-2xl font-semibold text-center mb-4 text-black">
+                Available on
+              </h2>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Button
+                  asChild
+                  className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-md text-white rounded-lg"
+                >
+                  <a
+                    href={`https://open.spotify.com/album/${albumId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    <td className="px-6 py-3">{index + 1}</td>
-                    <td className="px-6 py-3">{track.name}</td>
-                    <td className="px-6 py-3">
-                      {formatDuration(track.duration_ms / 1000)}
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        value={ratings[track.id]}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || (value >= 0 && value <= 10)) {
-                            setRatings({ ...ratings, [track.id]: value });
-                          }
-                        }}
-                        className="border px-3 py-1 rounded-lg"
-                        min="0"
-                        max="10"
-                        disabled={grayedOutTracks.has(track.id)} // Disable input if grayed out
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedTracks.has(track.id)}
-                        onChange={() => handleTrackSelect(track.id)}
-                        className="w-5 h-5"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <button
-                        onClick={() => toggleGrayOutTrack(track.id)}
-                        className="text-gray-500 hover:text-gray-700"
+                    <FaSpotify className="text-3xl" /> Listen on Spotify
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-black hover:bg-gray-800 text-md text-white rounded-lg"
+                >
+                  <a
+                    href={`https://music.apple.com/album/${albumId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FaApple className="text-3xl" /> Listen on Apple Music
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-red-600 hover:bg-red-700 text-md text-white rounded-lg"
+                >
+                  <a
+                    href={`https://music.youtube.com/album/${albumId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FaYoutube className="text-3xl" /> Listen on YouTube Music
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-orange-500 hover:bg-orange-600 text-md text-white rounded-lg"
+                >
+                  <a
+                    href={`https://soundcloud.com/${albumId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FaSoundcloud className="text-3xl" /> Listen on SoundCloud
+                  </a>
+                </Button>
+              </div>
+            </div>
+            <MagicCard
+              className="cursor-pointer flex-col whitespace-nowrap py-2"
+              gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+            >
+              <div className="overflow-x-auto shadow-md rounded-lg">
+                <table className="min-w-full table-auto">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left">#</th>
+                      <th className="px-6 py-3 text-left">Track</th>
+                      <th className="px-6 py-3 text-left">Duration</th>
+                      <th className="px-6 py-3 text-left">Rating</th>
+                      <th className="px-6 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectAllChecked}
+                          onChange={handleSelectAll}
+                          className="w-5 h-5"
+                        />
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {albumData.tracks.items.map((track, index) => (
+                      <tr
+                        key={track.id}
+                        className={
+                          grayedOutTracks.has(track.id) ? "opacity-50" : ""
+                        } // Add gray-out effect
                       >
-                        {grayedOutTracks.has(track.id) ? (
-                          <FaEyeSlash />
-                        ) : (
-                          <FaEye />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </MagicCard>
+                        <td className="px-6 py-3">{index + 1}</td>
+                        <td className="px-6 py-3">{track.name}</td>
+                        <td className="px-6 py-3">
+                          {formatDuration(track.duration_ms / 1000)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <input
+                            type="number"
+                            value={ratings[track.id]}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || (value >= 0 && value <= 10)) {
+                                setRatings({ ...ratings, [track.id]: value });
+                              }
+                            }}
+                            className="border px-3 py-1 rounded-lg"
+                            min="0"
+                            max="10"
+                            disabled={grayedOutTracks.has(track.id)} // Disable input if grayed out
+                          />
+                        </td>
+                        <td className="px-6 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedTracks.has(track.id)}
+                            onChange={() => handleTrackSelect(track.id)}
+                            className="w-5 h-5"
+                          />
+                        </td>
+                        <td className="px-6 py-3">
+                          <button
+                            onClick={() => toggleGrayOutTrack(track.id)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            {grayedOutTracks.has(track.id) ? (
+                              <FaEyeSlash />
+                            ) : (
+                              <FaEye />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </MagicCard>
 
-        <div className="flex justify-center my-10">
-          <Button
-            onClick={handleSubmit}
-            className="px-6 py-3 text-xl flex items-center justify-center gap-4 transition-all h-10 w-1/4"
-          >
-            <FaCheckCircle /> Submit
-          </Button>
-        </div>
+            <div className="flex justify-center my-10">
+              <Button
+                onClick={handleSubmit}
+                className="px-6 py-3 text-xl flex items-center justify-center gap-4 transition-all h-10 w-1/4"
+              >
+                <FaCheckCircle /> Submit
+              </Button>
+            </div>
 
-        {averageRating && (
-          <div className="text-center mt-5 text-xl font-semibold">
-            <p>Your Average Rating: {averageRating}</p>
-          </div>
+            {averageRating && (
+              <div className="text-center mt-5 text-xl font-semibold">
+                <p>Your Average Rating: {averageRating}</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

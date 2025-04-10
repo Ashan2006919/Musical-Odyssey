@@ -7,7 +7,14 @@ import { Input } from "@/components/ui/input";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { ChevronRightIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaSpotify, FaStar, FaFilter } from "react-icons/fa"; // Import icons
 import {
@@ -24,15 +31,22 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
 import { useSession } from "next-auth/react";
+import Modal from "@/components/Modal"; // Import the Modal component
+import { MagicCard } from "@/components/magicui/magic-card"; // Import MagicCard component
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-  // Redirect to login if not authenticated
+  // Check if the user is authenticated
   useEffect(() => {
+    if (status === "loading") {
+      // Wait for the session to finish loading
+      return;
+    }
+
     if (status === "unauthenticated") {
-      router.push("/login");
+      router.push("/"); // Redirect to the root page if not authenticated
     }
   }, [status, router]);
 
@@ -46,6 +60,8 @@ export default function Home() {
   const [selectedGenres, setSelectedGenres] = useState([]); // State for selected genres
   const [albumsBySelectedGenres, setAlbumsBySelectedGenres] = useState([]); // State to store albums for selected genres
   const [loadedAlbumIds, setLoadedAlbumIds] = useState(new Set()); // Set to keep track of loaded album IDs
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [searchResults, setSearchResults] = useState([]); // State to store search results
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
 
@@ -125,7 +141,6 @@ export default function Home() {
       // Fetch Spotify access token
       const tokenResponse = await fetch("/api/spotify");
       const tokenData = await tokenResponse.json();
-      console.log("Spotify API Token Response:", tokenData); // Debugging
 
       if (!tokenResponse.ok) {
         throw new Error(
@@ -140,18 +155,17 @@ export default function Home() {
         return;
       }
 
-      // Fetch album details using the access token
+      // Fetch multiple album results
       const searchResponse = await fetch(
         `https://api.spotify.com/v1/search?q=${encodeURIComponent(
           query
-        )}&type=album&limit=1`,
+        )}&type=album&limit=5`,
         {
           headers: { Authorization: `Bearer ${access_token}` },
         }
       );
 
       const searchData = await searchResponse.json();
-      console.log("Spotify Album Search Response:", searchData); // Debugging
 
       if (!searchResponse.ok) {
         throw new Error(
@@ -167,12 +181,9 @@ export default function Home() {
         return;
       }
 
-      const album = searchData.albums.items[0];
-      setAlbumData(album);
-
-      // Extract dominant color for background
-      const color = await extractColor(album.images[0].url);
-      setDominantColor(color);
+      // Set the search results to state
+      setSearchResults(searchData.albums.items); // Store all album options
+      setIsModalOpen(true); // Open the modal to display options
     } catch (err) {
       console.error("Error fetching album:", err);
       setError(err.message || "Failed to fetch album data.");
@@ -335,70 +346,7 @@ export default function Home() {
 
       {/* Error Message */}
       {error && <p className="text-red-500 text-center">{error}</p>}
-      <div>
-        {/* Album Card */}
-        {loadingSearch ? (
-          <AlbumSkeletonSearch />
-        ) : albumData ? (
-          <Card className="relative w-full max-w-2xl overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out">
-            {/* Background Cover (Blurred, More Visible) */}
-            <div
-              className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm"
-              style={{ backgroundImage: `url(${albumData.images[0].url})` }}
-            ></div>
 
-            {/* Overlay (Less Dark, Adds Gradient) */}
-            <div
-              className="absolute inset-0 bg-black/10 rounded-xl 
-            before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
-            before:bg-gradient-to-t before:to-transparent"
-            ></div>
-
-            <CardContent className="relative flex items-center gap-x-6 p-6 flex-nowrap">
-              {" "}
-              {/* More spacing & no wrapping */}
-              {/* Album Cover */}
-              <img
-                src={albumData.images[0].url}
-                alt={albumData.name}
-                className="w-56 h-56 object-cover rounded-lg shadow-lg transition-transform hover:scale-105"
-              />
-              {/* Album Info */}
-              <div className="flex flex-col items-start text-left w-full">
-                <h2 className="text-2xl font-bold text-white drop-shadow-md">
-                  {albumData.name}
-                </h2>
-                <p className="text-lg text-gray-200">
-                  {albumData.artists[0].name}
-                </p>
-
-                {/* Buttons */}
-                <div className="flex gap-3 mt-4 w-full">
-                  <Button
-                    asChild
-                    className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-md text-white rounded-lg"
-                  >
-                    <a
-                      href={albumData.external_urls.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <FaSpotify className="text-lg" /> View on Spotify
-                    </a>
-                  </Button>
-
-                  <Button
-                    onClick={() => router.push(`/rate/${albumData.id}`)}
-                    className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-violet-600 hover:bg-indigo-700 text-md text-white rounded-lg"
-                  >
-                    <FaStar className="text-lg" /> Rate This Album
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-      </div>
       {/* Random Albums Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pb-10 pt-5">
@@ -423,13 +371,11 @@ export default function Home() {
                 {/* Overlay (Less Dark, Adds Gradient) */}
                 <div
                   className="absolute inset-0 bg-black/10 rounded-xl 
-                  before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
-                  before:bg-gradient-to-t before:to-transparent"
+                before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
+                before:bg-gradient-to-t before:to-transparent"
                 ></div>
 
                 <CardContent className="relative flex items-center gap-x-6 p-6 flex-nowrap">
-                  {" "}
-                  {/* More spacing & no wrapping */}
                   {/* Album Cover */}
                   <img
                     src={album.images[0].url}
@@ -441,9 +387,14 @@ export default function Home() {
                     <h2 className="text-xl font-bold text-white drop-shadow-md">
                       {album.name}
                     </h2>
-                    <p className="text-md text-gray-200">
+                    <a
+                      className="text-md text-gray-200 hover:underline"
+                      href={album.artists[0].external_urls.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {album.artists[0].name}
-                    </p>
+                    </a>
 
                     {/* Buttons */}
                     <div className="flex gap-3 mt-4 w-full">
@@ -492,13 +443,11 @@ export default function Home() {
               {/* Overlay (Less Dark, Adds Gradient) */}
               <div
                 className="absolute inset-0 bg-black/10 rounded-xl 
-                before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
-                before:bg-gradient-to-t before:to-transparent"
+              before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
+              before:bg-gradient-to-t before:to-transparent"
               ></div>
 
               <CardContent className="relative flex items-center gap-x-6 p-6 flex-nowrap">
-                {" "}
-                {/* More spacing & no wrapping */}
                 {/* Album Cover */}
                 <img
                   src={album.images[0].url}
@@ -510,9 +459,14 @@ export default function Home() {
                   <h2 className="text-xl font-bold text-white drop-shadow-md">
                     {album.name}
                   </h2>
-                  <p className="text-md text-gray-200">
+                  <a
+                    className="text-md text-gray-200 hover:underline"
+                    href={album.artists[0].external_urls.spotify}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {album.artists[0].name}
-                  </p>
+                  </a>
 
                   {/* Buttons */}
                   <div className="flex gap-3 mt-4 w-full">
@@ -542,6 +496,109 @@ export default function Home() {
           ))}
         </div>
       )}
+
+      {/* Modal for Album Selection */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSearchResults([]); // Clear results when modal is closed
+        }}
+      >
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          onClick={() => {
+            setIsModalOpen(false); // Close modal when clicking on the background
+            setSearchResults([]);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative max-h-[80vh]"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+          >
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => {
+                setIsModalOpen(false);
+                setSearchResults([]);
+              }}
+            >
+              ✕
+            </button>
+
+            <h2 className="text-xl font-bold mb-4">Select an Album</h2>
+            <div className="grid grid-cols-1 gap-4 overflow-y-auto max-h-[70vh]">
+              {searchResults.map((album) => (
+                <div
+                  key={album.id}
+                  className="relative flex items-center gap-4 p-4 border rounded-lg overflow-hidden"
+                >
+                  {/* Blurred Background */}
+                  <div
+                   className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm"
+                    style={{
+                      backgroundImage: `url(${album.images[0]?.url})`, // Set the album cover as the background
+                    }}
+                  ></div>
+
+                  {/* Dark Overlay */}
+                  <div className="absolute inset-0 bg-black/30 rounded-xl 
+              before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
+              before:bg-gradient-to-t before:to-transparent"></div>
+
+                  {/* Album Content */}
+                  <div className="relative z-10 flex items-center gap-4">
+                    {/* Album Cover */}
+                    <img
+                      src={album.images[0]?.url}
+                      alt={album.name}
+                      className="w-20 h-20 object-cover rounded-lg shadow-lg transition-transform hover:scale-105"
+                    />
+                    <div className="flex-1">
+                      {/* Album Name */}
+                      <h3 className="text-lg font-semibold text-white">
+                        {album.name}
+                      </h3>
+                      {/* Artist Name */}
+                      <p className="text-sm text-gray-300">
+                        {album.artists[0].name}
+                      </p>
+                      {/* Buttons */}
+                      <div className="flex gap-4 mt-2">
+                        {/* Spotify Button */}
+                        <Button
+                          asChild
+                          className="px-3 py-1 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-sm text-white rounded-lg"
+                        >
+                          <a
+                            href={album.external_urls.spotify}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <FaSpotify className="text-lg" /> Spotify
+                          </a>
+                        </Button>
+
+                        {/* Rate Button */}
+                        <Button
+                          onClick={() => {
+                            router.push(`/rate/${album.id}`);
+                            setIsModalOpen(false); // Close modal after navigating
+                          }}
+                          className="px-3 py-1 flex items-center justify-center gap-2 transition-all shadow-md bg-violet-600 hover:bg-indigo-700 text-sm text-white rounded-lg"
+                        >
+                          <FaStar className="text-lg" /> Rate This Album
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

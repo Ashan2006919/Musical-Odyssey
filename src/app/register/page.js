@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { useTheme } from "next-themes";
 import MagicLoginPopup from "@/components/MagicLoginPopup"; // Import the new component
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -27,6 +27,14 @@ export default function RegisterPage() {
   const router = useRouter();
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      // Redirect to the home page if the user is already logged in
+      router.push("/home");
+    }
+  }, [status, router]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -41,12 +49,20 @@ export default function RegisterPage() {
 
     // Show an info toast to indicate processing
     toast.info("Processing your registration. Please wait...");
+    console.log("Registering user:", {
+      username,
+      email,
+      password,
+      profileImage,
+    });
 
     try {
+      // Create a FormData object to handle file uploads
       const formData = new FormData();
       formData.append("username", username);
       formData.append("email", email);
       formData.append("password", password);
+      formData.append("provider", "credentials"); // Specify the provider as "credentials"
       if (profileImage) {
         formData.append("profileImage", profileImage);
       }
@@ -58,13 +74,15 @@ export default function RegisterPage() {
 
       const data = await response.json();
       if (!response.ok) {
-        if (data.message === "User already exists with this email.") {
+        if (data.message.includes("User already exists")) {
           setShowLoginPopup(true); // Show the login pop-up
         } else {
           toast.error(data.message || "Registration failed");
         }
       } else {
-        toast.success("Registration successful! Please check your email for the OTP.");
+        toast.success(
+          "Registration successful! Please check your email for the OTP."
+        );
         setUsername("");
         setEmail("");
         setPassword("");
@@ -94,14 +112,13 @@ export default function RegisterPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* Top/Left side for the image */}
-      <div className="w-full md:w-1/2 bg-gray-100 flex items-center justify-center mb-6 md:mb-0">
+      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
         <img
           src="/images/cartoon-boy-with-headphones-listening-to.jpg"
           alt="Login Illustration"
           className="max-w-full max-h-full object-cover"
         />
       </div>
-
       {/* Bottom/Right side for the registration form */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6">
         <h1 className="text-7xl font-extrabold leading-tight tracking-tighter text-center">
@@ -203,31 +220,35 @@ export default function RegisterPage() {
             {loading ? "Registering..." : "Register"}
           </Button>
         </form>
-        <p className="mt-4">
-          - or -
-        </p>
+        <p className="mt-4">- or continue with -</p>
         <div className="flex justify-center items-center mt-6 space-x-8">
-          <img
-            src="/icons/google.png"
-            alt="Register with Google"
-            className="w-9 h-9 cursor-pointer hover:opacity-80"
-            title="Register with Google"
-            onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
-          />
-          <img
-            src="/icons/spotify.png"
-            alt="Register with Spotify"
-            className="w-9 h-9 cursor-pointer hover:opacity-80"
-            title="Register with Spotify"
-            onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
-          />
-          <img
-            src="/icons/github.png"
-            alt="Register with GitHub"
-            className="w-9 h-9 cursor-pointer hover:opacity-80"
-            title="Register with GitHub"
-            onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
-          />
+          <Button variant="outline" className="w-full py-5">
+            <img
+              src="/icons/google.png"
+              alt="Login with Google"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Login with Google"
+              onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
+            />
+          </Button>
+          <Button variant="outline" className="w-full py-5">
+            <img
+              src="/icons/spotify.png"
+              alt="Login with Spotify"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Login with Spotify"
+              onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
+            />
+          </Button>
+          <Button variant="outline" className="w-full py-5">
+            <img
+              src="/icons/github.png"
+              alt="Register with GitHub"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Register with GitHub"
+              onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
+            />
+          </Button>
         </div>
         <p className="mt-5">
           Already have an account?{" "}
@@ -236,9 +257,10 @@ export default function RegisterPage() {
           </a>
         </p>
       </div>
-
       {/* Show the login pop-up if needed */}
-      {showLoginPopup && <MagicLoginPopup onClose={() => setShowLoginPopup(false)} />}
+      {showLoginPopup && (
+        <MagicLoginPopup onClose={() => setShowLoginPopup(false)} />
+      )}
       <ToastContainer /> {/* Add ToastContainer to render notifications */}
     </div>
   );

@@ -4,11 +4,11 @@ import { connectToDatabase } from "@/lib/mongodb";
 
 export async function POST(req) {
   try {
-    const { albumId, ratings, averageRating } = await req.json();
+    const { albumId, ratings, averageRating, userOmid } = await req.json();
 
-    if (!albumId || !ratings || averageRating === null) {
+    if (!albumId || !ratings || averageRating === null || !userOmid) {
       return Response.json(
-        { message: "Album ID, ratings, and average rating are required" },
+        { message: "Album ID, ratings, average rating, and user OMID are required" },
         { status: 400 }
       );
     }
@@ -16,24 +16,37 @@ export async function POST(req) {
     const { db } = await connectToDatabase();
 
     // Save the initial ratings to the ratings collection
-    const result = await db.collection("ratings").insertOne({
-      albumId, // Use Spotify album ID
-      ratings,
-      averageRating,
-      createdAt: new Date(),
-    });
+    try {
+      const result = await db.collection("ratings").insertOne({
+        albumId, // Use Spotify album ID
+        ratings,
+        averageRating,
+        userOmid, // Store the user's OMID
+        createdAt: new Date(),
+      });
 
-    // Save the average rating to the ratinghistories collection
-    await db.collection("ratinghistories").insertOne({
-      albumId, // Use Spotify album ID
-      averageRating,
-      date: new Date(), // Use the current date for the history entry
-    });
+      // Save the average rating to the ratinghistories collection
+      await db.collection("ratinghistories").insertOne({
+        albumId, // Use Spotify album ID
+        averageRating,
+        userOmid, // Store the user's OMID in the history as well
+        date: new Date(), // Use the current date for the history entry
+      });
 
-    return Response.json(
-      { message: "Ratings and history saved successfully" },
-      { status: 200 }
-    );
+      return Response.json(
+        { message: "Ratings and history saved successfully" },
+        { status: 200 }
+      );
+    } catch (error) {
+      if (error.code === 11000) {
+        // Handle duplicate key error
+        return Response.json(
+          { message: "You have already rated this album. Please update your rating instead." },
+          { status: 409 } // Conflict status code
+        );
+      }
+      throw error; // Re-throw other errors
+    }
   } catch (error) {
     console.error("Failed to save ratings and history:", error);
     return Response.json(

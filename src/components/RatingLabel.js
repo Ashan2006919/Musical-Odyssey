@@ -8,6 +8,8 @@ const RatingLabel = ({ rating }) => {
     setIsDialogOpen(true);
   };
 
+  console.log("RatingLabel received averageRating:", rating); // Debug log
+
   let label = '';
   let color = '';
   let textColor = '';
@@ -23,15 +25,15 @@ const RatingLabel = ({ rating }) => {
   } else if (rating < 6) {
     label = 'Good';
     color = 'yellow';
-    textColor = 'white';
+    textColor = 'black';
   } else if (rating < 7.5) {
     label = 'Great';
-    color = 'lightgreen';
-    textColor = 'black';
-  } else if (rating < 9.5) {
-    label = 'Amazing';
     color = 'green';
     textColor = 'white';
+  } else if (rating < 9.5) {
+    label = 'Amazing';
+    color = 'limegreen';
+    textColor = 'black';
   } else {
     label = 'Perfect';
     color = 'blue';

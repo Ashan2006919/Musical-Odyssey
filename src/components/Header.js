@@ -32,7 +32,9 @@ import { Button } from "@/components/ui/button";
 import { AvatarCircles } from "@/components/magicui/avatar-circles";
 import { useTheme } from "next-themes";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import ProfilePage from "@/app/profile/page";
+import { fetchPlaylistsData } from "@/utils/playlistData"; // Import shared playlist logic
 
 const products = [
   {
@@ -83,10 +85,19 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("/images/default-profile.png"); // Default profile image
   const [playlists, setPlaylists] = useState([]);
+  const [userPlaylists, setUserPlaylists] = useState([]);
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
+
+  const { data: session, status } = useSession();
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
 
   const isAuthPage =
     pathname === "/register" ||
@@ -118,56 +129,41 @@ const Header = () => {
     fetchUserProfile();
   }, []);
 
+  // Fetch predefined playlists
   useEffect(() => {
-    const fetchPlaylists = async () => {
+    const fetchPredefinedPlaylists = async () => {
       try {
-        // Step 1: Fetch the access token from the existing API route
         const tokenResponse = await fetch("/api/spotify");
-        if (!tokenResponse.ok) {
-          throw new Error("Failed to fetch access token.");
-        }
-
         const { access_token } = await tokenResponse.json();
 
-        // Step 2: Fetch details for each playlist using its ID
-        const fetchedPlaylists = await Promise.all(
-          playlistIds.map(async (id) => {
-            const response = await fetch(
-              `https://api.spotify.com/v1/playlists/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${access_token}`,
-                },
-              }
-            );
-
-            if (!response.ok) {
-              throw new Error(`Failed to fetch playlist with ID: ${id}`);
-            }
-
-            const data = await response.json();
-
-            // Step 3: Format the playlist data
-            return {
-              id: data.id,
-              name: data.name,
-              description: data.description || "No description available.",
-              imageUrl: data.images[0]?.url || "/images/default-playlist.png",
-              href: data.external_urls.spotify,
-            };
-          })
-        );
-
-        // Step 4: Update the state with the fetched playlists
+        const fetchedPlaylists = await fetchPlaylistsData(access_token); // Use shared logic
         setPlaylists(fetchedPlaylists);
       } catch (error) {
-        console.error("Error fetching playlists:", error);
+        console.error("Error fetching predefined playlists:", error);
       }
     };
 
-    fetchPlaylists();
+    fetchPredefinedPlaylists();
   }, []);
 
+  // Fetch user-added playlists
+  useEffect(() => {
+    const fetchUserPlaylists = async () => {
+      try {
+        const response = await fetch(
+          `/api/getUserPlaylists?userOmid=${session?.user?.omid}`
+        );
+        const data = await response.json();
+        setUserPlaylists(data.playlists || []);
+      } catch (error) {
+        console.error("Error fetching user playlists:", error);
+      }
+    };
+
+    if (session?.user?.omid) {
+      fetchUserPlaylists();
+    }
+  }, [session?.user?.omid]);
   if (isAuthPage) {
     return null;
   }
@@ -179,13 +175,13 @@ const Header = () => {
         className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
-          <a href="/home" className="-m-1.5 p-1.5 flex items-center gap-3">
+          <a href="/home" className="-m-16 p-1.5 flex items-center gap-3">
             <img
               alt="Odyssey Music Logo"
               src="/icons/musical-odyssey-md.png"
               className="h-10 w-auto"
             />
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tighter">
+            <h1 className="text-5xl font-extrabold leading-tight tracking-tighter">
               <LineShadowText
                 className="italic text-primary whitespace-nowrap"
                 shadowColor={shadowColor}
@@ -205,20 +201,16 @@ const Header = () => {
             <Bars3Icon aria-hidden="true" className="h-6 w-6" />
           </button>
         </div>
-        <PopoverGroup className="hidden lg:flex lg:gap-x-12">
+        <PopoverGroup className="hidden lg:flex lg:gap-x-4 lg:justify-center lg:items-center ml-20">
           <Popover className="relative">
-            <PopoverButton className="flex items-center pt-3 gap-x-1 text-sm font-semibold text-gray-900">
-              My Playlists
+            <PopoverButton className="flex items-center gap-x-1 text-sm font-semibold text-gray-900">
+              Our Playlists
               <ChevronDownIcon
                 aria-hidden="true"
                 className="h-5 w-5 flex-none text-gray-400"
               />
             </PopoverButton>
-
-            <PopoverPanel
-              transition
-              className="absolute top-full -left-8 z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white ring-1 shadow-lg ring-gray-900/5 transition data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
-            >
+            <PopoverPanel className="absolute top-full -left-8 z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white ring-1 shadow-lg ring-gray-900/5">
               <div className="p-4 max-h-72 overflow-y-auto">
                 {playlists.map((playlist) => (
                   <div
@@ -252,34 +244,87 @@ const Header = () => {
             </PopoverPanel>
           </Popover>
 
-          <a href="#" className="text-sm font-semibold text-gray-900 pt-3">
-            Features
-          </a>
-
-          <a
-            href="/ratings"
-            className="text-sm font-semibold text-orange-500 pt-3"
-          >
-            View Ratings
-          </a>
+          {/* User Playlists */}
+          <Popover className="relative">
+            <PopoverButton className="flex items-center gap-x-1 text-sm font-semibold text-gray-900">
+              Your Playlists
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="h-5 w-5 flex-none text-gray-400"
+              />
+            </PopoverButton>
+            <PopoverPanel className="absolute top-full -left-8 z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white ring-1 shadow-lg ring-gray-900/5">
+              <div className="p-4 max-h-72 overflow-y-auto">
+                {userPlaylists.map((playlist) => (
+                  <div
+                    key={playlist.id}
+                    className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm hover:bg-gray-50"
+                  >
+                    <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
+                      <img
+                        src={playlist.imageUrl}
+                        alt={playlist.name}
+                        className="h-11 w-11 rounded-lg object-cover"
+                      />
+                    </div>
+                    <div className="flex-auto">
+                      <a
+                        href={playlist.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block font-semibold text-gray-900"
+                      >
+                        {playlist.name}
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-600">
+                        {playlist.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverPanel>
+          </Popover>
+          <div className="flex items-center gap-x-8">
+            <a
+              href="/ratings"
+              className="text-sm font-semibold text-orange-500"
+            >
+              View Ratings
+            </a>
+            <a href="/profile" className="text-sm font-semibold text-gray-900">
+              Dashboard
+            </a>
+          </div>
         </PopoverGroup>
-        <div className="hidden lg:flex lg:flex-1 items-center gap-8 relative left-96">
+        <div className="hidden lg:flex lg:flex-1 items-center gap-8 relative left-72 mr-2">
           {/* Profile Picture with Hover Text */}
           <div className="relative group">
-            <AvatarCircles
-              avatarUrls={[{ imageUrl: avatarUrl, profileUrl: "#" }]}
-              className="w-10 h-10 rounded-full"
-            />
-            <div
-              className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-1 bg-gray-800 text-white text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-              style={{ zIndex: 10 }}
+            <button
+              onClick={(e) => {
+                e.preventDefault(); // Prevents any default link behavior
+                router.push("/profile");
+              }}
+              className="rounded-full border-4 border-orange-500 hover:border-red-600 text-white transition-all"
             >
-              Profile
-            </div>
+              <img
+                alt="profile image"
+                src={session?.user?.image || "/images/default-profile.png"} // Use user's profile image or default
+                className="h-10 w-10 rounded-full cursor-pointer"
+                onClick={() => router.push("/profile")}
+              />
+              <div
+                className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-1 bg-gray-800 text-white text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                style={{ zIndex: 10 }}
+              >
+                Profile
+              </div>
+            </button>
           </div>
 
           {/* Logout Icon with Hover Text */}
-          <div className="relative group">
+          <div className="relative group -mt-2">
             <button
               onClick={() => {
                 signOut(); // Call the signOut function from next-auth

@@ -4,27 +4,26 @@ import { connectToDatabase } from "@/lib/mongodb";
 
 export async function GET(req) {
   try {
+    // Extract query parameters from the request URL
     const { searchParams } = new URL(req.url);
     const albumId = searchParams.get("albumId");
+    const userOmid = searchParams.get("userOmid");
 
-    console.log("API received albumId:", albumId); // Debugging log
-
-    if (!albumId) {
+    if (!albumId || !userOmid) {
       return Response.json(
-        { message: "Album ID is required" },
+        { message: "albumId and userOmid are required" },
         { status: 400 }
       );
     }
 
     const { db } = await connectToDatabase();
 
+    // Fetch rating history for the specific album and user
     const history = await db
       .collection("ratinghistories")
-      .find({ albumId }) // Query by albumId
+      .find({ albumId, userOmid }) // Filter by albumId and userOmid
       .sort({ date: 1 }) // Sort by date in ascending order
       .toArray();
-
-    console.log("Returning history:", history); // Debugging log
 
     return Response.json({ history }, { status: 200 });
   } catch (error) {

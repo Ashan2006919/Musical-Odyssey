@@ -4,25 +4,23 @@ import { connectToDatabase } from "@/lib/mongodb";
 
 export async function POST(req) {
   try {
-    const { albumId, ratings, averageRating } = await req.json();
-    const { db } = await connectToDatabase();
+    const { albumId, ratings, averageRating, userOmid } = await req.json();
 
-    console.log("Received payload:", { albumId, ratings, averageRating }); // Debug log
-
-    // Ensure albumId and averageRating are valid
-    if (!albumId || averageRating === undefined || averageRating === null) {
-      throw new Error("albumId and averageRating are required but were not provided.");
+    if (!albumId || averageRating === undefined || averageRating === null || !userOmid) {
+      throw new Error("albumId, averageRating, and userOmid are required but were not provided.");
     }
 
+    const { db } = await connectToDatabase();
+
     // Fetch the album document to ensure it exists
-    const album = await db.collection("ratings").findOne({ albumId }); // Query by albumId
+    const album = await db.collection("ratings").findOne({ albumId, userOmid }); // Query by albumId and userOmid
     if (!album) {
       return Response.json({ message: "Rating not found" }, { status: 404 });
     }
 
     // Update the album's ratings and average rating
     const result = await db.collection("ratings").updateOne(
-      { albumId }, // Query by albumId
+      { albumId, userOmid }, // Query by albumId and userOmid
       { $set: { ratings, averageRating } }
     );
 
@@ -30,6 +28,7 @@ export async function POST(req) {
       // Insert the new average rating into the ratinghistories collection
       await db.collection("ratinghistories").insertOne({
         albumId, // Use Spotify album ID
+        userOmid, // Include the user's OMID
         date: new Date(),
         averageRating,
       });

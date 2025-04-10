@@ -4,6 +4,9 @@ import { usePathname } from "next/navigation";
 import { FaSpotify, FaSoundcloud, FaApple, FaYoutube } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 const Footer = () => {
   const theme = useTheme();
@@ -15,6 +18,17 @@ const Footer = () => {
     pathname === "/" ||
     pathname === "/otp-verification";
 
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
+
+  // Return null for authentication pages
   if (isAuthPage) {
     return null;
   }
@@ -47,12 +61,20 @@ const Footer = () => {
               </h2>
               <ul className="text-gray-500 dark:text-gray-400 font-medium">
                 <li className="mb-4">
-                  <a href="https://www.spotify.com" className="hover:underline">
+                  <a
+                    href="https://open.spotify.com/user/31w456o3ccwx76uzg7xi355ukb34"
+                    target="_blank"
+                    className="hover:underline"
+                  >
                     Spotify
                   </a>
                 </li>
                 <li>
-                  <a href="https://genius.com" className="hover:underline">
+                  <a
+                    href="https://genius.com/AshanNiwantha"
+                    target="_blank"
+                    className="hover:underline"
+                  >
                     Genius
                   </a>
                 </li>
@@ -65,18 +87,20 @@ const Footer = () => {
               <ul className="text-gray-500 dark:text-gray-400 font-medium">
                 <li className="mb-4">
                   <a
-                    href="https://www.soundcloud.com"
+                    href="https://www.tiktok.com/@ashan.niwantha0?_t=ZS-8vO9YpeIbrO&_r=1 "
                     className="hover:underline"
+                    target="_blank"
                   >
-                    SoundCloud
+                    Tik Tok
                   </a>
                 </li>
                 <li>
                   <a
-                    href="https://www.apple.com/music"
+                    href="https://www.instagram.com/mr.ashan_99?igsh=M3l0dGtyZ2NqODV2 "
                     className="hover:underline"
+                    target="_blank"
                   >
-                    Apple Music
+                    Instagram
                   </a>
                 </li>
               </ul>
@@ -87,12 +111,12 @@ const Footer = () => {
               </h2>
               <ul className="text-gray-500 dark:text-gray-400 font-medium">
                 <li className="mb-4">
-                  <a href="#" className="hover:underline">
+                  <a href="#" target="_blank" className="hover:underline">
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:underline">
+                  <a href="#" target="_blank" className="hover:underline">
                     Terms & Conditions
                   </a>
                 </li>
@@ -111,7 +135,7 @@ const Footer = () => {
           </span>
           <div className="flex mt-4 sm:justify-center sm:mt-0">
             <a
-              href="https://open.spotify.com/user/31w456o3ccwx76uzg7xi355ukb34?si=405ba34b38b5435f"
+              href="https://open.spotify.com"
               className="text-gray-500 hover:text-gray-900 dark:hover:text-white"
             >
               <FaSpotify className="w-4 h-4" />
@@ -130,13 +154,6 @@ const Footer = () => {
             >
               <FaApple className="w-4 h-4" />
               <span className="sr-only">Apple Music account</span>
-            </a>
-            <a
-              href="https://www.youtube.com"
-              className="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5"
-            >
-              <FaYoutube className="w-4 h-4" />
-              <span className="sr-only">YouTube account</span>
             </a>
           </div>
         </div>

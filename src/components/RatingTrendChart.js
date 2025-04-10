@@ -2,22 +2,12 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
-import { TrendingUp } from "lucide-react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import { useSession } from "next-auth/react"; // Import useSession
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Tooltip } from "recharts";
 import { ChartSkeleton } from "./AlbumSkeleton";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -36,14 +26,18 @@ const chartConfig = {
 
 const RatingTrendChart = ({ albumId }) => {
   console.log("Rendering RatingTrendChart with albumId:", albumId); // Debugging log
+  const { data: session } = useSession(); // Get session data
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const fetchRatingHistory = async () => {
-      if (!albumId) return;
+      if (!albumId || !session?.user?.omid) return; // Ensure albumId and OMID are available
+
       try {
-        const response = await axios.get(`/api/ratings/history?albumId=${albumId}`);
+        const response = await axios.get(
+          `/api/ratings/history?albumId=${albumId}&userOmid=${session.user.omid}` // Pass OMID to the API
+        );
         const formattedData = response.data.history.map((entry) => ({
           ...entry,
           date: new Date(entry.date).toISOString().slice(0, 10),
@@ -57,7 +51,7 @@ const RatingTrendChart = ({ albumId }) => {
     };
 
     fetchRatingHistory();
-  }, [albumId]);
+  }, [albumId, session?.user?.omid]); // Add session.user.omid as a dependency
 
   if (loading) {
     return <ChartSkeleton />; // Show skeleton while loading
@@ -66,33 +60,40 @@ const RatingTrendChart = ({ albumId }) => {
   return (
     <div className="w-full h-64">
       {chartData.length > 0 ? (
-            <ChartContainer config={chartConfig}>
-              <LineChart
-                width={500}
-                height={300}
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-              >
-                <CartesianGrid vertical={false} />
-
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Line
-                  type="natural"
-                  dataKey="averageRating"
-                  stroke="var(--color-desktop)"
-                  strokeWidth={3}
-                  dot={{
-                    fill: "var(--color-desktop)",
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
-                />
-              </LineChart>
-            </ChartContainer>
+        <ChartContainer config={chartConfig}>
+          <LineChart
+            width={500}
+            height={500}
+            data={chartData}
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid vertical={false} />
+            <YAxis
+              dataKey="averageRating"
+              domain={[0, 10]}
+              tickCount={11}
+              tickFormatter={(value) => value.toFixed(1)}
+              tickLine={false}
+              axisLine={false}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Line
+              type="natural"
+              dataKey="averageRating"
+              stroke="var(--color-desktop)"
+              strokeWidth={3}
+              dot={{
+                fill: "var(--color-desktop)",
+              }}
+              activeDot={{
+                r: 6,
+              }}
+            />
+          </LineChart>
+        </ChartContainer>
       ) : (
         <p className="text-center text-gray-500">
           No rating history available.
