@@ -35,11 +35,8 @@ if (!MONGOOSE_URI) {
 }
 
 if (!mongoose.connection.readyState) {
-  mongoose.connect(MONGOOSE_URI, {
-    dbName: process.env.MONGODB_DATABASE,
-  }).catch((err) => {
-    console.error("Failed to connect to MongoDB with Mongoose:", err);
-  });
+  // No need for useNewUrlParser and useUnifiedTopology anymore
+  mongoose.connect(MONGOOSE_URI);
 }
 
 const RatingHistorySchema = new mongoose.Schema({
