@@ -117,13 +117,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // Include profile info in the session object
+      console.log("Session callback triggered:", session); // Debugging line
+      console.log("Token data:", token); // Debugging line
       session.user.id = token.id;
-      session.user.omid = token.omid; // Include OMID in the session
+      session.user.omid = token.omid;
       session.user.name = token.name;
       session.user.email = token.email;
-      session.user.image = token.image; // Attach the image URL to the session
-      console.log("Session callback:", session); // Debugging line
+      session.user.image = token.image;
       return session;
     },
   },
