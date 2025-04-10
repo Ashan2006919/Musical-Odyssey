@@ -11,11 +11,18 @@ import { FaSignInAlt } from "react-icons/fa";
 import { loginUser } from "../api/auth";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
-import { FaEnvelope, FaLock, FaGoogle, FaSpotify, FaApple } from "react-icons/fa";
+import {
+  FaEnvelope,
+  FaLock,
+  FaGoogle,
+  FaSpotify,
+  FaApple,
+} from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { signIn } from "next-auth/react";
 import CredentialsProvider from "next-auth/providers/credentials";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -41,22 +48,34 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Show an info toast to indicate processing
     toast.info("Processing your login. Please wait...");
 
     try {
       const result = await signIn("credentials", {
-        redirect: false,
+        redirect: false, // Prevent automatic redirection
         email,
         password,
       });
-      console.log("Login result:", result); // Log the result for debugging
+      console.log("Login result:", result); // Debugging line
+
       if (!result) {
         toast.error("Something went wrong. Please try again.");
         return;
       }
+
       if (result.error) {
-        toast.error(result.error);
+        let errorMessage = "Email or Password invalid!";
+        try {
+          const parsed = JSON.parse(result.error);
+          errorMessage = parsed.message || errorMessage;
+        } catch (e) {
+          // fallback for generic errors like "CredentialsSignin"
+          if (result.error === "CredentialsSignin") {
+            errorMessage = "Invalid email or password.";
+          }
+        }
+
+        toast.error(errorMessage);
       } else {
         toast.success("Login successful! Redirecting...");
         setEmail("");
@@ -82,7 +101,6 @@ export default function LoginPage() {
           className="max-w-full max-h-full object-cover"
         />
       </div>
-
       {/* Bottom/Right side for the login form */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6">
         <h1 className=" text-5xl font-extrabold leading-tight tracking-tighter text-center">
@@ -128,46 +146,46 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
-        <p className="mt-4">
-          - or continue with -
-        </p>
+        <p className="mt-4">- or continue with -</p>
         <div className="flex justify-center items-center mt-6 space-x-8">
           <Button variant="outline" className="w-full py-5">
-          <img
-            src="/icons/google.png"
-            alt="Login with Google"
-            className="w-8 h-auto cursor-pointer hover:opacity-80"
-            title="Login with Google"
-            onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
-          />
+            <img
+              src="/icons/google.png"
+              alt="Login with Google"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Login with Google"
+              onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
+            />
           </Button>
           <Button variant="outline" className="w-full py-5">
-          <img
-            src="/icons/spotify.png"
-            alt="Login with Spotify"
-            className="w-8 h-auto cursor-pointer hover:opacity-80"
-            title="Login with Spotify"
-            onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
-          /></Button>
+            <img
+              src="/icons/spotify.png"
+              alt="Login with Spotify"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Login with Spotify"
+              onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
+            />
+          </Button>
           <Button variant="outline" className="w-full py-5">
-          <img
-            src="/icons/github.png"
-            alt="Register with GitHub"
-            className="w-8 h-auto cursor-pointer hover:opacity-80"
-            title="Register with GitHub"
-            onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
-          />
+            <img
+              src="/icons/github.png"
+              alt="Register with GitHub"
+              className="w-8 h-auto cursor-pointer hover:opacity-80"
+              title="Register with GitHub"
+              onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
+            />
           </Button>
         </div>
-        <p className="mt-5">
-          Don&apos;t have an account?{" "}
-          <a href="/register" className="text-blue-500">
-            Register
-          </a>
-        </p>
+        <div className="mt-5 text-center">
+          <Link href="/register">
+            <p className="px-6 py-2">
+              Don&apos;t have an account?:{" "}
+              <span className="text-blue-500 underline"> Register </span>
+            </p>
+          </Link>
+        </div>
       </div>
       <ToastContainer /> {/* Add ToastContainer to render notifications */}
     </div>
   );
 }
-

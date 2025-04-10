@@ -14,6 +14,7 @@ import MagicLoginPopup from "@/components/MagicLoginPopup"; // Import the new co
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -250,12 +251,11 @@ export default function RegisterPage() {
             />
           </Button>
         </div>
-        <p className="mt-5">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-500">
-            Login
-          </a>
-        </p>
+        <div className="mt-5 text-center">
+          <Link href="/login">
+            <p className="px-6 py-2">Already have an account?: <span className="text-blue-500 underline"> Login </span></p>
+          </Link>
+        </div>
       </div>
       {/* Show the login pop-up if needed */}
       {showLoginPopup && (

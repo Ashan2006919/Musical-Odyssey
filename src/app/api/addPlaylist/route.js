@@ -14,7 +14,7 @@ export async function POST(req) {
     const { db } = await connectToDatabase();
 
     // Fetch playlist details from Spotify API
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL; // Use environment variable or fallback to localhost
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"; // Use environment variable or fallback to localhost
     const tokenResponse = await fetch(`${baseUrl}/api/spotify`);
     const { access_token } = await tokenResponse.json();
 
@@ -30,7 +30,7 @@ export async function POST(req) {
 
     if (!response.ok) {
       return new Response(
-        JSON.stringify({ message: "Failed to fetch playlist details." }),
+        JSON.stringify({ message: "Invalid Spotify playlist ID or playlist not found." }),
         { status: 400 }
       );
     }
@@ -49,7 +49,11 @@ export async function POST(req) {
     // Save playlist to MongoDB
     await db.collection("playlists").insertOne(playlist);
 
-    return new Response(JSON.stringify({ playlist }), { status: 200 });
+    // On success
+    return new Response(
+      JSON.stringify({ playlist, message: "Playlist added successfully!" }),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error adding playlist:", error);
     return new Response(

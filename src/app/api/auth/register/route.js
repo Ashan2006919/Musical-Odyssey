@@ -9,10 +9,15 @@ import { IncomingForm } from "formidable";
 const client = new MongoClient(process.env.MONGODB_URI);
 let db, usersCollection;
 
-client.connect().then(() => {
-  db = client.db("test");
-  usersCollection = db.collection("users");
-});
+async function connectToDatabase() {
+  if (!client.topology || !client.topology.isConnected()) {
+    console.log("Connecting to MongoDB...");
+    await client.connect();
+    db = client.db("test"); // Replace "test" with your database name
+    usersCollection = db.collection("users");
+    console.log("Connected to MongoDB and initialized usersCollection.");
+  }
+}
 
 // AWS S3 Client
 const s3Client = new S3Client({
@@ -29,7 +34,7 @@ async function uploadToS3(fileBuffer, fileName, mimeType) {
     Key: fileName,
     Body: fileBuffer,
     ContentType: mimeType,
-  };  
+  };
 
   console.log("Uploading file with params:", {
     fileName,
@@ -91,6 +96,8 @@ async function sendVerificationEmail(email, code) {
 // POST /register
 export async function POST(req) {
   try {
+    await connectToDatabase(); // Ensure the database connection is established
+
     const formData = await req.formData(); // Parse form data
     const username = formData.get("username");
     const email = formData.get("email");
@@ -184,7 +191,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Registration error:", error);
     return new Response(
-      JSON.stringify({ message: "Something went wrong." }),
+      JSON.stringify({ message: "Something went wrong. Please try again." }),
       { status: 500 }
     );
   }

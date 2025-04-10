@@ -21,8 +21,14 @@ async function connectToDatabase() {
 }
 
 // Function to generate a unique OMID
+
 function generateOMID() {
-  return uuidv4(); // Use UUID for guaranteed uniqueness
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let omid = "";
+  for (let i = 0; i < 12; i++) {
+    omid += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return omid;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -34,33 +40,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const { email, password } = credentials || {};
+        try {
+          const { email, password } = credentials;
 
-        // Connect to MongoDB
-        const db = await connectToDatabase();
-        const usersCollection = db.collection("users");
+          // Connect to MongoDB
+          const db = await connectToDatabase();
+          const usersCollection = db.collection("users");
 
-        // Check if the user exists in the database
-        const user = await usersCollection.findOne({ email });
+          // Check if the user exists
+          const user = await usersCollection.findOne({ email });
+          if (!user) {
+            throw new Error(
+              JSON.stringify({ message: "User not found. Please register." })
+            );
+          }
 
-        if (!user) {
-          return null; // No user found
-        }
+          // Validate the password
+          const isPasswordValid = await bcrypt.compare(password, user.password);
+          if (!isPasswordValid) {
+            throw new Error(
+              JSON.stringify({ message: "Invalid password. Please try again." })
+            );
+          }
 
-        // Compare provided password with the stored hash
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (isPasswordValid) {
+          // Return user data if authentication is successful
           return {
             id: user._id.toString(),
-            omid: user.omid, // Include OMID in the user object
+            omid: user.omid,
             email: user.email,
             name: user.username,
-            image: user.profileImageUrl || "/images/default-profile.png", // Set the image URL
-          }; // Return user info on success
+            image: user.profileImageUrl || "/images/default-profile.png",
+          };
+        } catch (error) {
+          console.error("Authorization error:", error.message);
+          throw new Error(error.message); // Pass the error message to next-auth
         }
-
-        return null; // Password is invalid
       },
     }),
     GoogleProvider({
@@ -129,9 +143,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: "jwt", // Use JWT for session management
-  },
-  pages: {
-    signIn: "/auth/login", // Custom sign-in page path (if you have one)
-    error: "/auth/error",   // Custom error page path (if you have one)
   },
 });

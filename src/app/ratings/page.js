@@ -286,16 +286,23 @@ const RatingsPage = () => {
     setFilteredRatings(filtered);
   };
 
-  const handleYearFilterChange = (selectedYear) => {
-    setYearFilter(selectedYear);
+  const handleYearFilterChange = (selectedYearOrDecade) => {
+    setYearFilter(selectedYearOrDecade);
 
     const filtered = ratingsData.filter((rating) =>
       rating.trackDetails.some((track) => {
-        const releaseYear = track.releaseDate?.split("-")[0];
-        return selectedYear === "" || releaseYear === selectedYear;
+        const releaseYear = track.releaseDate?.split("-")[0]; // Extract the release year
+        const releaseDecade = releaseYear?.slice(0, 3) + "0s"; // Derive the decade (e.g., "2000s")
+
+        // Check if the filter matches the year or the decade
+        return (
+          selectedYearOrDecade === "" || // No filter applied
+          releaseYear === selectedYearOrDecade || // Matches specific year
+          releaseDecade === selectedYearOrDecade // Matches decade
+        );
       })
     );
-
+    console.log("Filtered Ratings:", filtered);
     setFilteredRatings(filtered);
   };
 
@@ -322,7 +329,8 @@ const RatingsPage = () => {
     );
   }
 
-  if (!loading && filteredRatings.length === 0) {
+  if (!loading && ratingsData.length === 0) {
+    // Case 1: No albums have been rated by the user
     return (
       <div className="py-5">
         <div className="container mx-auto pb-10 px-4 sm:px-6 lg:px-8 text-center">
@@ -342,7 +350,6 @@ const RatingsPage = () => {
           <Button
             onClick={() => router.push("/")}
             className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-lg font-semibold rounded-lg shadow-md transition-all flex items-center gap-2"
-          
           >
             <FontAwesomeIcon icon={faHome} className="text-xl" />{" "}
             {/* Add Home Icon */}
@@ -352,8 +359,6 @@ const RatingsPage = () => {
       </div>
     );
   }
-
-  if (error) return <p>{error}</p>;
 
   return (
     <div className="py-5">
@@ -377,6 +382,7 @@ const RatingsPage = () => {
               setSearchQuery(""); // Clear the search query
               setYearFilter(""); // Clear the year filter
               setFilteredRatings(ratingsData); // Reset to show all ratings
+              router.push("/ratings"); // Reset the URL to the root of the ratings page
             }}
             className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all"
             title="Reset Filters" // Tooltip text
@@ -404,11 +410,15 @@ const RatingsPage = () => {
               <DropdownMenuSeparator />
               {Object.entries(yearsData).map(([decade, years]) => (
                 <DropdownMenuSub key={decade}>
-                  <DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger
+                    onClick={() => handleYearFilterChange(decade)} // Filter by decade on click
+                    className="font-semibold text-blue-500 cursor-pointer"
+                  >
                     <span>{decade}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
+                      {/* Filter by specific year */}
                       {years.map((year) => (
                         <DropdownMenuItem
                           key={year}
@@ -429,6 +439,15 @@ const RatingsPage = () => {
           </DropdownMenu>
         </div>
 
+        {/* Conditional Message for No Results */}
+        {filteredRatings.length === 0 && ratingsData.length > 0 && (
+          <p className="text-lg text-gray-600 text-center mb-6">
+            No albums match your search query. Try a different query or reset
+            the filters.
+          </p>
+        )}
+
+        {/* Album Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-24">
           {filteredRatings.map((rating) => (
             <MagicCard

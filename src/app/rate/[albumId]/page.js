@@ -29,20 +29,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSession } from "next-auth/react";
-import { AlbumInfoSkeleton, TrackListSkeleton, AvailableOnSkeleton } from "@/components/AlbumSkeleton";
+import {
+  AlbumInfoSkeleton,
+  TrackListSkeleton,
+  AvailableOnSkeleton,
+} from "@/components/AlbumSkeleton";
 
 const RateAlbum = () => {
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-    
-    const router = useRouter();
-    const { data: session, status } = useSession();
-
-    // Redirect to login if not authenticated
-    useEffect(() => {
-      if (status === "unauthenticated") {
-        router.push("/");
-      }
-    }, [status, router]);
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
 
   const params = useParams();
   const albumId = params?.albumId;
@@ -60,9 +62,11 @@ const RateAlbum = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State for confirmation dialog
   const [isPreviouslyReviewed, setIsPreviouslyReviewed] = useState(false); // State to track if the album was reviewed
   const { theme } = useTheme();
-  const [isSubmitConfirmationOpen, setIsSubmitConfirmationOpen] = useState(false); // State for submit confirmation dialog
+  const [isSubmitConfirmationOpen, setIsSubmitConfirmationOpen] =
+    useState(false); // State for submit confirmation dialog
   const [isNewRatingDialogOpen, setIsNewRatingDialogOpen] = useState(false); // State for new rating dialog
-  const [isUpdateCompleteDialogOpen, setIsUpdateCompleteDialogOpen] = useState(false); // State for the new dialog
+  const [isUpdateCompleteDialogOpen, setIsUpdateCompleteDialogOpen] =
+    useState(false); // State for the new dialog
 
   const resolvedTheme = theme?.resolvedTheme || "light";
   const shadowColor = resolvedTheme === "dark" ? "white" : "black";
@@ -119,6 +123,71 @@ const RateAlbum = () => {
       updatedGrayedOutTracks.add(trackId);
     }
     setGrayedOutTracks(updatedGrayedOutTracks);
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission behavior
+
+      const inputs = document.querySelectorAll("input[type='number']");
+      if (index < inputs.length - 1) {
+        // Focus the next input field
+        inputs[index + 1].focus();
+      } else {
+        // Trigger the submit button if it's the last input field
+        document.querySelector("button[type='submit']").click();
+      }
+    }
+  };
+
+  const handleTableNavigation = (e, rowIndex, columnType) => {
+    const rows = document.querySelectorAll("tbody tr");
+    const currentRow = rows[rowIndex];
+
+    if (!currentRow) return;
+
+    // Get all rating inputs and checkboxes in the current row
+    const ratingInput = currentRow.querySelector("input[type='number']");
+    const checkboxInput = currentRow.querySelector("input[type='checkbox']");
+
+    switch (e.key) {
+      case "ArrowUp":
+        if (rowIndex > 0) {
+          const prevRow = rows[rowIndex - 1];
+          if (columnType === "rating") {
+            prevRow.querySelector("input[type='number']").focus();
+          } else if (columnType === "checkbox") {
+            prevRow.querySelector("input[type='checkbox']").focus();
+          }
+        }
+        break;
+
+      case "ArrowDown":
+        if (rowIndex < rows.length - 1) {
+          const nextRow = rows[rowIndex + 1];
+          if (columnType === "rating") {
+            nextRow.querySelector("input[type='number']").focus();
+          } else if (columnType === "checkbox") {
+            nextRow.querySelector("input[type='checkbox']").focus();
+          }
+        }
+        break;
+
+      case "ArrowLeft":
+        if (columnType === "checkbox") {
+          ratingInput?.focus();
+        }
+        break;
+
+      case "ArrowRight":
+        if (columnType === "rating") {
+          checkboxInput?.focus();
+        }
+        break;
+
+      default:
+        break;
+    }
   };
 
   useEffect(() => {
@@ -212,27 +281,27 @@ const RateAlbum = () => {
 
   const handleConfirmSubmit = async () => {
     setIsSubmitConfirmationOpen(false); // Close the confirmation dialog
-  
+
     const avgRating = calculateAverageRating();
     setAverageRating(avgRating);
-  
+
     if (!avgRating) {
       toast.warning("No valid ratings to calculate an average.");
       return;
     }
-  
+
     if (!session?.user?.omid) {
       toast.error("User ID (OMID) is missing. Please log in again.");
       return;
     }
-  
+
     try {
       // Check if the album has been reviewed before
       const response = await axios.get(
         `/api/ratings/history?albumId=${albumId}&userOmid=${session.user.omid}` // Include userOmid
       );
       const { history } = response.data;
-  
+
       if (history.length > 0) {
         // Album has been reviewed before
         setIsPreviouslyReviewed(true);
@@ -256,7 +325,7 @@ const RateAlbum = () => {
       toast.error("User ID (OMID) is missing. Please log in again.");
       return;
     }
-  
+
     try {
       const response = await axios.post("/api/saveRatings", {
         albumId, // Use Spotify albumId
@@ -264,13 +333,15 @@ const RateAlbum = () => {
         averageRating: avgRating,
         userOmid: session.user.omid, // Include OMID
       });
-  
+
       if (response.status === 200) {
         toast.success("Ratings saved successfully");
         setIsNewRatingDialogOpen(true); // Open the new rating dialog
       } else if (response.status === 409) {
         // Handle duplicate rating
-        toast.warning("You have already rated this album. Please update your rating instead.");
+        toast.warning(
+          "You have already rated this album. Please update your rating instead."
+        );
         setIsDialogOpen(true); // Open the dialog to update ratings
       } else {
         toast.error("Failed to save ratings");
@@ -286,7 +357,7 @@ const RateAlbum = () => {
       toast.error("User ID (OMID) is missing. Please log in again.");
       return;
     }
-  
+
     try {
       const response = await axios.post("/api/updateRatings", {
         albumId, // Use Spotify albumId
@@ -294,7 +365,7 @@ const RateAlbum = () => {
         averageRating: avgRating,
         userOmid: session.user.omid, // Include OMID
       });
-  
+
       if (response.status === 200) {
         toast.success("Ratings updated successfully");
         setIsUpdateCompleteDialogOpen(true); // Open the new dialog
@@ -354,13 +425,13 @@ const RateAlbum = () => {
       toast.error("User ID (OMID) is missing. Please log in again.");
       return;
     }
-  
+
     try {
       const response = await axios.get(
         `/api/ratings/history?albumId=${albumId}&userOmid=${session.user.omid}` // Include userOmid
       );
       const { history } = response.data;
-  
+
       if (history.length > 0) {
         setIsPreviouslyReviewed(true);
         setIsDialogOpen(true);
@@ -378,10 +449,10 @@ const RateAlbum = () => {
       toast.error("User ID (OMID) is missing. Please log in again.");
       return;
     }
-  
+
     try {
       setIsSubmitClicked(true);
-  
+
       // Calculate average rating
       const totalRating = Object.values(ratings).reduce(
         (sum, rating) => sum + (parseFloat(rating) || 0),
@@ -392,9 +463,9 @@ const RateAlbum = () => {
           ? totalRating /
             Object.values(ratings).filter((rating) => rating).length
           : 0;
-  
+
       setAverageRating(avgRating);
-  
+
       // Prepare data to save
       const ratingData = {
         albumId,
@@ -405,10 +476,10 @@ const RateAlbum = () => {
         userOmid: session.user.omid, // Include OMID
         timestamp: new Date().toISOString(),
       };
-  
+
       // Save to database
       const response = await axios.post("/api/ratings/save", ratingData);
-  
+
       if (response.status === 200) {
         toast.success("Rating saved successfully!");
         router.push("/profile"); // Redirect to profile or another page
@@ -427,7 +498,7 @@ const RateAlbum = () => {
     return <p className="text-center text-red-500">Error: No Album ID Found</p>;
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen">
       <div className="max-w-7xl mx-auto py-10 px-6">
         {/* Title text should always be displayed */}
         <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-5">
@@ -467,13 +538,27 @@ const RateAlbum = () => {
 
                 <div className="flex flex-col justify-center p-5">
                   <div className="mb-4">
-                    <p className="text-2xl font-semibold text-black">
-                      {albumData.name}
+                    <p className="text-2xl font-semibold mb-1 text-black">
+                      <a
+                        href={albumData.external_urls.spotify} // Spotify link for the album
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline text-blue-600"
+                      >
+                        {albumData.name}
+                      </a>
                     </p>
                     <p className="text-gray-700 font-semibold">
                       Artists:{" "}
                       <span className="font-normal">
-                        {albumData.artists[0].name}
+                        <a
+                          href={albumData.artists[0].external_urls.spotify} // Spotify link for the artist
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {albumData.artists[0].name}
+                        </a>
                       </span>
                     </p>
                     <p className="text-gray-700 font-semibold">
@@ -524,7 +609,9 @@ const RateAlbum = () => {
                   className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-black hover:bg-gray-800 text-md text-white rounded-lg"
                 >
                   <a
-                    href={`https://music.apple.com/album/${albumId}`}
+                    href={`https://music.apple.com/us/search?term=${encodeURIComponent(
+                      albumData.name + " " + albumData.artists[0].name
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -536,7 +623,9 @@ const RateAlbum = () => {
                   className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-red-600 hover:bg-red-700 text-md text-white rounded-lg"
                 >
                   <a
-                    href={`https://music.youtube.com/album/${albumId}`}
+                    href={`https://music.youtube.com/search?q=${encodeURIComponent(
+                      albumData.name + " " + albumData.artists[0].name
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -548,7 +637,9 @@ const RateAlbum = () => {
                   className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-orange-500 hover:bg-orange-600 text-md text-white rounded-lg"
                 >
                   <a
-                    href={`https://soundcloud.com/${albumId}`}
+                    href={`https://soundcloud.com/search?q=${encodeURIComponent(
+                      albumData.name + " " + albumData.artists[0].name
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -565,11 +656,19 @@ const RateAlbum = () => {
                 <table className="min-w-full table-auto">
                   <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left">#</th>
+                      <th className="px-6 py-3 text-left hidden sm:table-cell">
+                        #
+                      </th>{" "}
+                      {/* Hide index on small screens */}
                       <th className="px-6 py-3 text-left">Track</th>
-                      <th className="px-6 py-3 text-left">Duration</th>
+                      <th className="px-6 py-3 text-left hidden sm:table-cell">
+                        Duration
+                      </th>{" "}
+                      {/* Hide duration on small screens */}
                       <th className="px-6 py-3 text-left">Rating</th>
-                      <th className="px-6 py-3 text-left">
+                      <th className="px-6 py-3 text-left hidden sm:table-cell">
+                        {" "}
+                        {/* Hide checkboxes on small screens */}
                         <input
                           type="checkbox"
                           checked={selectAllChecked}
@@ -585,13 +684,17 @@ const RateAlbum = () => {
                         key={track.id}
                         className={
                           grayedOutTracks.has(track.id) ? "opacity-50" : ""
-                        } // Add gray-out effect
+                        }
                       >
-                        <td className="px-6 py-3">{index + 1}</td>
+                        <td className="px-6 py-3 hidden sm:table-cell">
+                          {index + 1}
+                        </td>{" "}
+                        {/* Hide index on small screens */}
                         <td className="px-6 py-3">{track.name}</td>
-                        <td className="px-6 py-3">
+                        <td className="px-6 py-3 hidden sm:table-cell">
                           {formatDuration(track.duration_ms / 1000)}
-                        </td>
+                        </td>{" "}
+                        {/* Hide duration on small screens */}
                         <td className="px-6 py-3">
                           <input
                             type="number"
@@ -602,21 +705,36 @@ const RateAlbum = () => {
                                 setRatings({ ...ratings, [track.id]: value });
                               }
                             }}
+                            onWheel={(e) => e.target.blur()} // Prevent scroll behavior
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault(); // Prevent increment/decrement behavior
+                              }
+                              handleTableNavigation(e, index, "rating"); // Handle navigation
+                            }}
                             className="border px-3 py-1 rounded-lg"
                             min="0"
                             max="10"
                             disabled={grayedOutTracks.has(track.id)} // Disable input if grayed out
                           />
                         </td>
-                        <td className="px-6 py-3">
+                        <td className="px-6 py-3 hidden sm:table-cell">
+                          {" "}
+                          {/* Hide checkboxes on small screens */}
                           <input
                             type="checkbox"
                             checked={selectedTracks.has(track.id)}
                             onChange={() => handleTrackSelect(track.id)}
+                            onKeyDown={(e) =>
+                              handleTableNavigation(e, index, "checkbox")
+                            }
                             className="w-5 h-5"
                           />
                         </td>
-                        <td className="px-6 py-3">
+                        <td className="px-1 py-3">
                           <button
                             onClick={() => toggleGrayOutTrack(track.id)}
                             className="text-gray-500 hover:text-gray-700"
@@ -637,6 +755,7 @@ const RateAlbum = () => {
 
             <div className="flex justify-center my-10">
               <Button
+                type="submit"
                 onClick={handleSubmit}
                 className="px-6 py-3 text-xl flex items-center justify-center gap-4 transition-all h-10 w-1/4"
               >
@@ -679,12 +798,16 @@ const RateAlbum = () => {
 
       {/* Post-Submission Dialog */}
       {isNewRatingDialogOpen && (
-        <Dialog open={isNewRatingDialogOpen} onOpenChange={setIsNewRatingDialogOpen}>
+        <Dialog
+          open={isNewRatingDialogOpen}
+          onOpenChange={setIsNewRatingDialogOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Rating Submitted</DialogTitle>
               <DialogDescription>
-                Your rating for this album has been successfully submitted. What would you like to do next?
+                Your rating for this album has been successfully submitted. What
+                would you like to do next?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -704,7 +827,10 @@ const RateAlbum = () => {
 
       {/* Confirmation Dialog */}
       {isSubmitConfirmationOpen && (
-        <Dialog open={isSubmitConfirmationOpen} onOpenChange={setIsSubmitConfirmationOpen}>
+        <Dialog
+          open={isSubmitConfirmationOpen}
+          onOpenChange={setIsSubmitConfirmationOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Confirm Submission</DialogTitle>
@@ -716,9 +842,7 @@ const RateAlbum = () => {
               <Button variant="outline" onClick={handleCancelSubmit}>
                 Cancel
               </Button>
-              <Button onClick={handleConfirmSubmit}>
-                Confirm
-              </Button>
+              <Button onClick={handleConfirmSubmit}>Confirm</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -726,12 +850,16 @@ const RateAlbum = () => {
 
       {/* New Dialog After Updating Ratings */}
       {isUpdateCompleteDialogOpen && (
-        <Dialog open={isUpdateCompleteDialogOpen} onOpenChange={setIsUpdateCompleteDialogOpen}>
+        <Dialog
+          open={isUpdateCompleteDialogOpen}
+          onOpenChange={setIsUpdateCompleteDialogOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Review Updated</DialogTitle>
               <DialogDescription>
-                Your review for this album has been successfully updated. What would you like to do next?
+                Your review for this album has been successfully updated. What
+                would you like to do next?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

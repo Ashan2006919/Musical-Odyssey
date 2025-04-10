@@ -5,12 +5,18 @@
 /* Global styles */
 html {
   font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 body {
   background-color: #f4f4f4;
   color: #333;
   font-size: 16px;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 h1, h2 {
@@ -19,6 +25,15 @@ h1, h2 {
 
 button, input {
   transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box; /* Ensure padding and borders are included in element width/height */
+}
+
+.container {
+  max-width: 100%; /* Ensure containers do not exceed the viewport width */
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
 /* Custom Styles for Buttons */

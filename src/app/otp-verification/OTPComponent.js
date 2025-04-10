@@ -61,7 +61,7 @@ export default function OTPComponent() {
         if (responseData?.success) {
           toast.success("Your account has been successfully verified!");
           setTimeout(() => {
-            router.push("/home");
+            router.push("/login"); // Redirect to login page after 2 seconds
           }, 2000);
         } else {
           toast.error(responseData.message || "Unexpected response.");
