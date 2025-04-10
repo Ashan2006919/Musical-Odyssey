@@ -1,34 +1,24 @@
-import { MongoClient } from 'mongodb';
+import mongoose from "mongoose";
 
-let client;
-let clientPromise;
+// Ensure MongoDB URI is defined
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB;
 
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB; // Ensure this is set in your environment variables
-
-if (!uri) {
-  throw new Error('Please define the MONGODB_URI environment variable');
+if (!MONGODB_URI) {
+  throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-if (!dbName) {
+if (!MONGODB_DB) {
   throw new Error("Please add your MongoDB database name to .env.local");
 }
 
-if (!global._mongoClientPromise) {
-  client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+// Mongoose Connection
+if (!mongoose.connection.readyState) {
+  mongoose.connect(MONGODB_URI, {
+    dbName: MONGODB_DB,
+  }).catch((err) => {
+    console.error("Failed to connect to MongoDB with Mongoose:", err);
   });
-  global._mongoClientPromise = client.connect();
-}
-
-clientPromise = global._mongoClientPromise;
-
-export async function connectToDatabase() {
-  const client = await clientPromise;
-  const db = client.db(process.env.MONGODB_DB);
-
-  return { client, db };
 }
 
 // Album Schema
@@ -54,8 +44,6 @@ const Album = mongoose.models.Album || mongoose.model("Album", AlbumSchema);
 // Function to update ratings and average for an album
 export async function updateAlbumRating(albumId, trackRatings) {
   try {
-    await connectToDatabase(); // Ensure you're connected to the database
-
     // Calculate new average rating for the album
     const totalTracks = trackRatings.length;
     const totalRating = trackRatings.reduce((acc, track) => acc + track.rating, 0);
