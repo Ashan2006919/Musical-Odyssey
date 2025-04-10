@@ -699,6 +699,9 @@ const RatingsPage = () => {
               </DialogContent>
             </Dialog>
           ))}
+        {searchParams.get("albumId") && (
+          <p>Album ID: {searchParams.get("albumId")}</p>
+        )}
       </div>
     </Suspense>
   );
