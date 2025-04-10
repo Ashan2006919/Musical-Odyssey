@@ -31,19 +31,23 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Externalize certain modules on the client-side
-      config.externals = {
-        ...config.externals,
-        '@napi-rs/snappy': 'commonjs @napi-rs/snappy',
-        'kerberos': 'commonjs kerberos',
-        'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-        '@mongodb-js/zstd': 'commonjs @mongodb-js/zstd',
-      };
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        {
+          '@napi-rs/snappy': 'commonjs @napi-rs/snappy',
+          'kerberos': 'commonjs kerberos',
+          'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+          '@mongodb-js/zstd': 'commonjs @mongodb-js/zstd',
+        },
+      ];
     } else {
       // Externalize `formidable` on the server-side
-      config.externals = {
-        ...config.externals,
-        formidable: 'commonjs formidable',
-      };
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        {
+          formidable: 'commonjs formidable',
+        },
+      ];
     }
 
     return config;
