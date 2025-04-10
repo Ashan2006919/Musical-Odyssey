@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import axios from "axios";
 import { MagicCard } from "@/components/magicui/magic-card";
@@ -120,8 +120,6 @@ const RatingsPage = () => {
             return { ...rating, trackDetails, albumId: rating.albumId };
           })
         );
-
-        console.log("Updated Ratings:", updatedRatings);
 
         setRatingsData(updatedRatings);
 
@@ -343,6 +341,7 @@ const RatingsPage = () => {
           <Button
             onClick={() => router.push("/")}
             className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-lg font-semibold rounded-lg shadow-md transition-all flex items-center gap-2"
+          
           >
             <FontAwesomeIcon icon={faHome} className="text-xl" />{" "}
             {/* Add Home Icon */}
@@ -355,355 +354,343 @@ const RatingsPage = () => {
 
   if (error) return <p>{error}</p>;
 
-  console.log("Filtered Ratings:", filteredRatings);
-
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <div className="py-5">
-        <ToastContainer />
-        <div className="container mx-auto pb-10 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-10">
-            Your Rated
-            <LineShadowText
-              className="italic text-primary ml-3 whitespace-nowrap"
-              shadowColor={shadowColor}
-            >
-              Albums !
-            </LineShadowText>
-          </h1>
+    <div className="py-5">
+      <ToastContainer />
+      <div className="container mx-auto pb-10 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-10">
+          Your Rated
+          <LineShadowText
+            className="italic text-primary ml-3 whitespace-nowrap"
+            shadowColor={shadowColor}
+          >
+            Albums !
+          </LineShadowText>
+        </h1>
 
-          {/* Search and Filter */}
-          <div className="mb-10 -mt-4 flex justify-center items-center gap-4">
-            {/* Reset Button */}
-            <button
-              onClick={() => {
-                setSearchQuery(""); // Clear the search query
-                setYearFilter(""); // Clear the year filter
-                setFilteredRatings(ratingsData); // Reset to show all ratings
-              }}
-              className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all"
-              title="Reset Filters" // Tooltip text
-            >
-              <FontAwesomeIcon icon={faUndo} className="text-lg" />{" "}
-              {/* Reset Icon */}
-            </button>
+        {/* Search and Filter */}
+        <div className="mb-10 -mt-4 flex justify-center items-center gap-4">
+          {/* Reset Button */}
+          <button
+            onClick={() => {
+              setSearchQuery(""); // Clear the search query
+              setYearFilter(""); // Clear the year filter
+              setFilteredRatings(ratingsData); // Reset to show all ratings
+            }}
+            className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all"
+            title="Reset Filters" // Tooltip text
+          >
+            <FontAwesomeIcon icon={faUndo} className="text-lg" />{" "}
+            {/* Reset Icon */}
+          </button>
 
-            {/* Search Bar */}
-            <Input
-              type="text"
-              placeholder="Search by album or artist name..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="w-full max-w-md px-4 py-2 border rounded-lg"
-            />
+          {/* Search Bar */}
+          <Input
+            type="text"
+            placeholder="Search by album or artist name..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full max-w-md px-4 py-2 border rounded-lg"
+          />
 
-            {/* Dropdown Menu for Year Filter */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">Filter by Year</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Filter by Decade</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {Object.entries(yearsData).map(([decade, years]) => (
-                  <DropdownMenuSub key={decade}>
-                    <DropdownMenuSubTrigger>
-                      <span>{decade}</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        {years.map((year) => (
-                          <DropdownMenuItem
-                            key={year}
-                            onClick={() => handleYearFilterChange(year)}
-                          >
-                            {year}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleYearFilterChange("")}>
-                  Clear Filter
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-24">
-            {filteredRatings.map((rating) => (
-              <MagicCard
-                className="cursor-pointer flex-col whitespace-nowrap shadow-md rounded-lg p-6 relative transition-transform duration-300 hover:scale-105 hover:shadow-lg"
-                gradientColor={
-                  resolvedTheme === "dark" ? "#262626" : "#D9D9D955"
-                }
-                key={rating._id}
-              >
-                <button
-                  className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 text-xl"
-                  onClick={() => handleEditClick(rating._id)} // Pass the correct ratingId
-                >
-                  <FontAwesomeIcon icon={faEdit} />
-                </button>
-                <div className="flex items-center mb-4">
-                  <img
-                    src={rating.trackDetails[0]?.albumCover}
-                    alt={rating.trackDetails[0]?.albumName}
-                    className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
-                  />
-                  <div className="flex flex-col">
-                    <h2 className="text-2xl font-bold text-wrap">
-                      {rating.trackDetails[0]?.albumName}
-                    </h2>
-                    <p className="text-gray-600 text-wrap">
-                      {rating.trackDetails[0]?.albumArtist}
-                    </p>
-                    <p className="text-gray-600 text-sm mt-1 text-wrap">
-                      {rating.trackDetails[0]?.releaseDate}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center mb-2 justify-between">
-                    <h3 className="text-xl font-semibold">Track Ratings:</h3>
-                    <RatingLabel
-                      rating={calculateAverageRating(rating.ratings)}
-                    />{" "}
-                    {/* Pass the updated rating */}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-gray-600 text-lg font-semibold">
-                    Average Rating:{" "}
-                    <span className="font-medium">
-                      {calculateAverageRating(rating.ratings)}
-                    </span>
-                  </p>
-                  {/* Add the rating label */}
-                </div>
-                <div className="flex gap-4 mt-4">
-                  <Button
-                    className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
-                    onClick={() => handleViewRatingsClick(rating._id)} // Open View Ratings dialog
-                  >
-                    <FontAwesomeIcon icon={faSearch} /> {/* Add search icon */}
-                    View Ratings
-                  </Button>
-                  <Button
-                    className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
-                    onClick={() => handleViewTrendsClick(rating._id)} // Open Trends dialog
-                  >
-                    <FontAwesomeIcon icon={faChartLine} /> {/* Add trends icon */}
-                    View Trends
-                  </Button>
-                </div>
-              </MagicCard>
-            ))}
-          </div>
+          {/* Dropdown Menu for Year Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Filter by Year</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Filter by Decade</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Object.entries(yearsData).map(([decade, years]) => (
+                <DropdownMenuSub key={decade}>
+                  <DropdownMenuSubTrigger>
+                    <span>{decade}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {years.map((year) => (
+                        <DropdownMenuItem
+                          key={year}
+                          onClick={() => handleYearFilterChange(year)}
+                        >
+                          {year}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleYearFilterChange("")}>
+                Clear Filter
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Edit Ratings Dialog */}
-        {editing && (
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[425px] h-[650px] flex flex-col">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-24">
+          {filteredRatings.map((rating) => (
+            <MagicCard
+              className="cursor-pointer flex-col whitespace-nowrap shadow-md rounded-lg p-6 relative transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+              gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+              key={rating._id}
+            >
+              <button
+                className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 text-xl"
+                onClick={() => handleEditClick(rating._id)} // Pass the correct ratingId
+              >
+                <FontAwesomeIcon icon={faEdit} />
+              </button>
+              <div className="flex items-center mb-4">
+                <img
+                  src={rating.trackDetails[0]?.albumCover}
+                  alt={rating.trackDetails[0]?.albumName}
+                  className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
+                />
+                <div className="flex flex-col">
+                  <h2 className="text-2xl font-bold text-wrap">
+                    {rating.trackDetails[0]?.albumName}
+                  </h2>
+                  <p className="text-gray-600 text-wrap">
+                    {rating.trackDetails[0]?.albumArtist}
+                  </p>
+                  <p className="text-gray-600 text-sm mt-1 text-wrap">
+                    {rating.trackDetails[0]?.releaseDate}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center mb-2 justify-between">
+                  <h3 className="text-xl font-semibold">Track Ratings:</h3>
+                  <RatingLabel
+                    rating={calculateAverageRating(rating.ratings)}
+                  />{" "}
+                  {/* Pass the updated rating */}
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-gray-600 text-lg font-semibold">
+                  Average Rating:{" "}
+                  <span className="font-medium">
+                    {calculateAverageRating(rating.ratings)}
+                  </span>
+                </p>
+                {/* Add the rating label */}
+              </div>
+              <div className="flex gap-4 mt-4">
+                <Button
+                  className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                  onClick={() => handleViewRatingsClick(rating._id)} // Open View Ratings dialog
+                >
+                  <FontAwesomeIcon icon={faSearch} /> {/* Add search icon */}
+                  View Ratings
+                </Button>
+                <Button
+                  className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                  onClick={() => handleViewTrendsClick(rating._id)} // Open Trends dialog
+                >
+                  <FontAwesomeIcon icon={faChartLine} /> {/* Add trends icon */}
+                  View Trends
+                </Button>
+              </div>
+            </MagicCard>
+          ))}
+        </div>
+      </div>
+
+      {/* Edit Ratings Dialog */}
+      {editing && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[425px] h-[650px] flex flex-col">
+            {" "}
+            {/* Use flex layout */}
+            <DialogHeader>
+              <DialogTitle className="pb-1 text-orange-500">
+                Edit Ratings
+              </DialogTitle>
+              <DialogDescription>
+                Make changes to your ratings here. Click save when you're done.
+              </DialogDescription>
+            </DialogHeader>
+            <hr />
+            {/* Scrollable tracklist container */}
+            <div className="grid gap-4 pb-4 pt-2 overflow-y-auto flex-grow">
+              {ratingsData
+                .find((r) => r._id === editing) // Find by ratingId
+                ?.trackDetails.map((track) => (
+                  <div
+                    key={track.trackId}
+                    className="grid grid-cols-4 items-center gap-4 mr-5"
+                  >
+                    <Label
+                      htmlFor={`rating-${track.trackId}`}
+                      className="text-right"
+                    >
+                      {track.name}
+                    </Label>
+                    <Input
+                      id={`rating-${track.trackId}`}
+                      type="number"
+                      value={editedRatings[track.trackId] || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || (value >= 0 && value <= 10)) {
+                          handleRatingChange(track.trackId, value);
+                        }
+                      }}
+                      placeholder={
+                        editedRatings[track.trackId] === null
+                          ? "Grayed out - Enter a value if you want"
+                          : "Enter a rating (0-10)"
+                      }
+                      className="col-span-3"
+                    />
+                  </div>
+                ))}
+            </div>
+            <DialogFooter className="bg-white mt-4">
               {" "}
-              {/* Use flex layout */}
+              {/* Ensure footer stays at the bottom */}
+              <Button
+                className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2"
+                onClick={() => handleSaveClick(editing)}
+              >
+                <FontAwesomeIcon icon={faSave} /> {/* Add save icon */}
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* View Trends Dialog */}
+      {isTrendDialogOpen && (
+        <Dialog open={isTrendDialogOpen} onOpenChange={setIsTrendDialogOpen}>
+          <DialogContent className="max-w-[90%] sm:max-w-[600px] px-2 sm:px-8 flex flex-col mx-1 sm:mx-auto rounded-lg">
+            <DialogHeader>
+              <DialogTitle>Rating Trends</DialogTitle>
+              <DialogDescription>
+                See how your ratings for this album have changed over time.
+              </DialogDescription>
+            </DialogHeader>
+            <hr />
+            {console.log(
+              "Passing selectedAlbumId to RatingTrendChart:",
+              selectedAlbumId
+            )}{" "}
+            {/* Debugging log */}
+            <RatingTrendChart albumId={selectedAlbumId} />
+            <hr className="mt-5" />
+            <DialogFooter className="bg-white mt-4">
+              {" "}
+              {/* Ensure footer stays at the bottom */}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsTrendDialogOpen(false);
+                  setSelectedAlbumId(null); // Reset selectedAlbumId when closing the dialog
+                }}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* View Ratings Dialog */}
+      {isViewRatingsDialogOpen &&
+        selectedRating &&
+        filteredRatings.map((rating) => (
+          <Dialog
+            key={rating.id} // make sure there's a unique `key`
+            open={isViewRatingsDialogOpen}
+            onOpenChange={setIsViewRatingsDialogOpen}
+          >
+            <DialogContent className="w-[95%] max-w-[450px] h-[650px] flex flex-col px-4 sm:px-4 mx-1 sm:mx-auto rounded-lg">
               <DialogHeader>
                 <DialogTitle className="pb-1 text-orange-500">
-                  Edit Ratings
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={selectedRating.trackDetails[0]?.albumCover}
+                      alt={selectedRating.trackDetails[0]?.albumName}
+                      className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
+                    />
+                    <div className="flex flex-col">
+                      <h2 className="text-2xl font-bold text-wrap">
+                        {selectedRating.trackDetails[0]?.albumName}
+                      </h2>
+                      <p className="text-gray-600 text-wrap">
+                        {selectedRating.trackDetails[0]?.albumArtist}
+                      </p>
+                      <p className="text-gray-600 text-sm mt-1 text-wrap">
+                        {selectedRating.trackDetails[0]?.releaseDate}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mr-5 -mt-14">
+                    <RatingLabel
+                      rating={calculateAverageRating(rating.ratings)}
+                    />
+                  </div>
                 </DialogTitle>
-                <DialogDescription>
-                  Make changes to your ratings here. Click save when you're
-                  done.
-                </DialogDescription>
               </DialogHeader>
               <hr />
-              {/* Scrollable tracklist container */}
-              <div className="grid gap-4 pb-4 pt-2 overflow-y-auto flex-grow">
-                {ratingsData
-                  .find((r) => r._id === editing) // Find by ratingId
-                  ?.trackDetails.map((track) => (
-                    <div
-                      key={track.trackId}
-                      className="grid grid-cols-4 items-center gap-4 mr-5"
-                    >
-                      <Label
-                        htmlFor={`rating-${track.trackId}`}
-                        className="text-right"
-                      >
-                        {track.name}
-                      </Label>
-                      <Input
-                        id={`rating-${track.trackId}`}
-                        type="number"
-                        value={editedRatings[track.trackId] || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || (value >= 0 && value <= 10)) {
-                            handleRatingChange(track.trackId, value);
-                          }
-                        }}
-                        placeholder={
-                          editedRatings[track.trackId] === null
-                            ? "Grayed out - Enter a value if you want"
-                            : "Enter a rating (0-10)"
-                        }
-                        className="col-span-3"
-                      />
+              <DialogDescription className="text-gray-600 text-sm text-wrap">
+                Track ratings for this album :
+              </DialogDescription>
+              <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
+                {selectedRating.trackDetails.map((track) => (
+                  <div
+                    key={track.trackId}
+                    className="flex items-center justify-between py-2 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold">
+                        <img
+                          src="/icons/track-icon-96.png"
+                          alt={track.albumName}
+                          className="h-full w-full rounded-md"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold text-gray-800 text-wrap">
+                          {track.name}
+                        </p>
+                        <p className="text-sm text-gray-500">{track.trackId}</p>
+                      </div>
                     </div>
-                  ))}
+
+                    <div className="bg-white border border-gray-300 rounded-md px-3 mr-6 py-1 shadow-sm">
+                      {selectedRating.ratings[track.trackId] === null ||
+                      selectedRating.ratings[track.trackId] === "" ? (
+                        <div className="relative group">
+                          <span className="text-xl text-red-600">✖</span>
+                          {/* Tooltip */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            This track hasn't been rated because it was grayed
+                            out by you.
+                          </div>
+                        </div>
+                      ) : (
+                        selectedRating.ratings[track.trackId]
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
               <DialogFooter className="bg-white mt-4">
-                {" "}
-                {/* Ensure footer stays at the bottom */}
-                <Button
-                  className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2"
-                  onClick={() => handleSaveClick(editing)}
-                >
-                  <FontAwesomeIcon icon={faSave} /> {/* Add save icon */}
-                  Save Changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* View Trends Dialog */}
-        {isTrendDialogOpen && (
-          <Dialog open={isTrendDialogOpen} onOpenChange={setIsTrendDialogOpen}>
-            <DialogContent className="max-w-[90%] sm:max-w-[600px] px-2 sm:px-8 flex flex-col mx-1 sm:mx-auto rounded-lg">
-              <DialogHeader>
-                <DialogTitle>Rating Trends</DialogTitle>
-                <DialogDescription>
-                  See how your ratings for this album have changed over time.
-                </DialogDescription>
-              </DialogHeader>
-              <hr />
-              {console.log(
-                "Passing selectedAlbumId to RatingTrendChart:",
-                selectedAlbumId
-              )}{" "}
-              {/* Debugging log */}
-              <RatingTrendChart albumId={selectedAlbumId} />
-              <hr className="mt-5" />
-              <DialogFooter className="bg-white mt-4">
-                {" "}
-                {/* Ensure footer stays at the bottom */}
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setIsTrendDialogOpen(false);
-                    setSelectedAlbumId(null); // Reset selectedAlbumId when closing the dialog
-                  }}
+                  onClick={() => setIsViewRatingsDialogOpen(false)}
                 >
                   Close
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
-
-        {/* View Ratings Dialog */}
-        {isViewRatingsDialogOpen &&
-          selectedRating &&
-          filteredRatings.map((rating) => (
-            <Dialog
-              key={rating.id} // make sure there's a unique `key`
-              open={isViewRatingsDialogOpen}
-              onOpenChange={setIsViewRatingsDialogOpen}
-            >
-              <DialogContent className="w-[95%] max-w-[450px] h-[650px] flex flex-col px-4 sm:px-4 mx-1 sm:mx-auto rounded-lg">
-                <DialogHeader>
-                  <DialogTitle className="pb-1 text-orange-500">
-                    <div className="flex items-center mb-4">
-                      <img
-                        src={selectedRating.trackDetails[0]?.albumCover}
-                        alt={selectedRating.trackDetails[0]?.albumName}
-                        className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
-                      />
-                      <div className="flex flex-col">
-                        <h2 className="text-2xl font-bold text-wrap">
-                          {selectedRating.trackDetails[0]?.albumName}
-                        </h2>
-                        <p className="text-gray-600 text-wrap">
-                          {selectedRating.trackDetails[0]?.albumArtist}
-                        </p>
-                        <p className="text-gray-600 text-sm mt-1 text-wrap">
-                          {selectedRating.trackDetails[0]?.releaseDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end mr-5 -mt-14">
-                      <RatingLabel
-                        rating={calculateAverageRating(rating.ratings)}
-                      />
-                    </div>
-                  </DialogTitle>
-                </DialogHeader>
-                <hr />
-                <DialogDescription className="text-gray-600 text-sm text-wrap">
-                  Track ratings for this album :
-                </DialogDescription>
-                <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
-                  {selectedRating.trackDetails.map((track) => (
-                    <div
-                      key={track.trackId}
-                      className="flex items-center justify-between py-2 rounded-lg shadow-sm"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold">
-                          <img
-                            src="/icons/track-icon-96.png"
-                            alt={track.albumName}
-                            className="h-full w-full rounded-md"
-                          />
-                        </div>
-                        <div>
-                          <p className="text-base font-semibold text-gray-800 text-wrap">
-                            {track.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {track.trackId}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-gray-300 rounded-md px-3 mr-6 py-1 shadow-sm">
-                        {selectedRating.ratings[track.trackId] === null ||
-                        selectedRating.ratings[track.trackId] === "" ? (
-                          <div className="relative group">
-                            <span className="text-xl text-red-600">✖</span>
-                            {/* Tooltip */}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                              This track hasn't been rated because it was
-                              grayed out by you.
-                            </div>
-                          </div>
-                        ) : (
-                          selectedRating.ratings[track.trackId]
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <DialogFooter className="bg-white mt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsViewRatingsDialogOpen(false)}
-                  >
-                    Close
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          ))}
-        {searchParams.get("albumId") && (
-          <p>Album ID: {searchParams.get("albumId")}</p>
-        )}
-      </div>
-    </Suspense>
+        ))}
+    </div>
   );
 };
 
