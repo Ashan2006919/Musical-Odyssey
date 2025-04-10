@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from "../lib/mongodb";
 
 const RatingSchema = new mongoose.Schema({
   albumId: { type: String, required: true, unique: true },
