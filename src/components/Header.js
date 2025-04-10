@@ -327,9 +327,9 @@ const Header = () => {
           <div className="relative group -mt-2">
             <button
               onClick={() => {
-                signOut();
-                localStorage.removeItem("token");
-                window.location.href = process.env.NEXT_PUBLIC_BASE_URL || "/";
+                signOut(); // Call the signOut function from next-auth
+                localStorage.removeItem("token"); // Remove the token from localStorage
+                router.push("/"); // Redirect to the login page
               }}
               className="p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all"
             >
@@ -430,10 +430,9 @@ const Header = () => {
               <div className="py-6">
                 <Button
                   onClick={() => {
-                    signOut();
-                    localStorage.removeItem("token");
-                    window.location.href =
-                      process.env.NEXT_PUBLIC_BASE_URL || "/";
+                    signOut(); // Call the signOut function from next-auth
+                    localStorage.removeItem("token"); // Remove the token from localStorage
+                    router.push("/"); // Redirect to the login page
                   }}
                   className="px-4 py-2 text-lg flex items-center justify-center gap-2 transition-all bg-red-500 hover:bg-red-600 text-white rounded-lg"
                 >
