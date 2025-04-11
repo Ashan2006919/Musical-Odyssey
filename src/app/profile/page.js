@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { FaTrash } from "react-icons/fa";
+import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the confirmation dialog
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -33,6 +34,8 @@ const ProfilePage = () => {
   const [userSearchQuery, setUserSearchQuery] = useState(""); // For searching user playlists
   const [isDialogOpen, setIsDialogOpen] = useState(false); // For the add playlist dialog
   const [albumRatingsCount, setAlbumRatingsCount] = useState(0); // New state for album ratings count
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [playlistToDelete, setPlaylistToDelete] = useState(null);
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   const router = useRouter();
@@ -56,17 +59,16 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchPredefinedPlaylists = async () => {
       try {
-        const tokenResponse = await fetch("/api/spotify");
-        const { access_token } = await tokenResponse.json();
-
-        const fetchedPlaylists = await fetchPlaylistsData(access_token); // Use shared logic
-        setPredefinedPlaylists(fetchedPlaylists);
-        setFilteredPredefinedPlaylists(fetchedPlaylists); // Initialize filtered playlists
+        const response = await fetch(`/api/predefinedPlaylists`); // Use the new endpoint
+        const data = await response.json();
+        setPredefinedPlaylists(data.playlists || []);
+        setFilteredPredefinedPlaylists(data.playlists || []); // Initialize filtered playlists
       } catch (error) {
         console.error("Error fetching predefined playlists:", error);
+        toast.error("Failed to fetch predefined playlists.");
       }
     };
-
+  
     fetchPredefinedPlaylists();
   }, []);
 
@@ -134,14 +136,22 @@ const ProfilePage = () => {
     setFilteredUserPlaylists((prev) => [...prev, newPlaylist]); // Update filtered playlists
   };
 
-  const handleDeletePlaylist = async (playlistId) => {
+  const handleDeleteClick = (playlistId) => {
+    setPlaylistToDelete(playlistId); // Set the playlist to delete
+    setIsConfirmDialogOpen(true); // Open the confirmation dialog
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsConfirmDialogOpen(false); // Close the dialog
+    if (!playlistToDelete) return;
+
     try {
       const response = await fetch(`/api/deletePlaylist`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ playlistId, userOmid: session.user.omid }),
+        body: JSON.stringify({ playlistId: playlistToDelete, userOmid: session.user.omid }),
       });
 
       if (!response.ok) {
@@ -152,17 +162,17 @@ const ProfilePage = () => {
 
       // Remove the playlist from the state
       setUserPlaylists((prev) =>
-        prev.filter((playlist) => playlist.id !== playlistId)
+        prev.filter((playlist) => playlist.id !== playlistToDelete)
       );
       setFilteredUserPlaylists((prev) =>
-        prev.filter((playlist) => playlist.id !== playlistId)
+        prev.filter((playlist) => playlist.id !== playlistToDelete)
       );
       toast.success("Playlist deleted successfully!");
     } catch (error) {
       console.error("Error deleting playlist:", error);
-      toast.error(
-        "An error occurred while deleting the playlist. Please try again."
-      );
+      toast.error("An error occurred while deleting the playlist. Please try again.");
+    } finally {
+      setPlaylistToDelete(null); // Reset the playlist to delete
     }
   };
 
@@ -324,7 +334,11 @@ const ProfilePage = () => {
         {/* Predefined Playlists Section */}
         <Card className="md:col-span-2 col-span-4 row-span-2 bg-white shadow-md rounded-lg p-4">
           <CardHeader>
-          <CardTitle><Badge className="w-fit ml-2 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">Our Playlists</Badge></CardTitle>
+            <CardTitle>
+              <Badge className="w-fit ml-2 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">
+                Our Playlists
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {/* Search Bar */}
@@ -344,7 +358,7 @@ const ProfilePage = () => {
                 {filteredPredefinedPlaylists.map((playlist) => (
                   <div
                     key={playlist.id}
-                    className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                    className="relative flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
                   >
                     <img
                       src={playlist.imageUrl}
@@ -426,7 +440,7 @@ const ProfilePage = () => {
                     </div>
                     {/* Delete Button */}
                     <button
-                      onClick={() => handleDeletePlaylist(playlist.id)}
+                      onClick={() => handleDeleteClick(playlist.id)}
                       className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
                     >
                       <FaTrash /> {/* Trash Icon */}
@@ -492,6 +506,13 @@ const ProfilePage = () => {
         </Button>
       </div>
       <ToastContainer /> {/* Add this to render toast notifications */}
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        message="Are you sure you want to delete this playlist? This action cannot be undone."
+      />
     </div>
   );
 };

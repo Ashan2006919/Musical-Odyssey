@@ -2,19 +2,20 @@ import { connectToDatabase } from "@/lib/mongodb";
 
 export async function POST(req) {
   try {
-    const { playlistUrl, userOmid } = await req.json();
+    const { playlistUrl } = await req.json();
 
-    if (!playlistUrl || !userOmid) {
+    if (!playlistUrl) {
       return new Response(
-        JSON.stringify({ message: "Playlist URL and user OMID are required." }),
+        JSON.stringify({ message: "Playlist URL is required." }),
         { status: 400 }
       );
     }
 
-    const { db } = await connectToDatabase();
+    const { db } = await connectToDatabase(); // Properly connect to the database
 
     // Fetch playlist details from Spotify API
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://musical-odyssey.vercel.app";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "https://musical-odyssey.vercel.app";
     const tokenResponse = await fetch(`${baseUrl}/api/spotify`);
     const { access_token } = await tokenResponse.json();
 
@@ -30,7 +31,9 @@ export async function POST(req) {
 
     if (!response.ok) {
       return new Response(
-        JSON.stringify({ message: "Invalid Spotify playlist ID or playlist not found." }),
+        JSON.stringify({
+          message: "Invalid Spotify playlist ID or playlist not found.",
+        }),
         { status: 400 }
       );
     }
@@ -43,8 +46,7 @@ export async function POST(req) {
       description: playlistData.description || "No description available.",
       imageUrl: playlistData.images[0]?.url || "/images/default-playlist.png",
       href: playlistData.external_urls.spotify,
-      isPredefined: false, // Mark as user-added playlist
-      userOmid, // Associate playlist with the user's OMID
+      isPredefined: true, // Mark as predefined for admin
     };
 
     // Save playlist to MongoDB

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react"; // Import useSession
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { Tooltip } from "recharts";
 import { ChartSkeleton } from "./AlbumSkeleton";
 
 import {

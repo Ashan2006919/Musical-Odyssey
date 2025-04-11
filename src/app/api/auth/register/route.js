@@ -125,68 +125,34 @@ export async function POST(req) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    let profileImageUrl = "/images/default-profile.png";
-    if (profileImage && profileImage.size > 0) {
-      const fileName = `${uuidv4()}-${profileImage.name}`;
-      const mimeType = profileImage.type;
-
-      if (!["image/jpeg", "image/png"].includes(mimeType)) {
-        return new Response(
-          JSON.stringify({ message: "Invalid image format. Use JPEG or PNG." }),
-          { status: 400 }
-        );
-      }
-
-      if (profileImage.size > 5 * 1024 * 1024) {
-        return new Response(
-          JSON.stringify({ message: "Image exceeds 5MB size limit." }),
-          { status: 400 }
-        );
-      }
-
-      try {
-        const buffer = await profileImage.arrayBuffer();
-        profileImageUrl = await uploadToS3(Buffer.from(buffer), fileName, mimeType);
-      } catch (uploadError) {
-        console.error("Image upload failed:", uploadError);
-        return new Response(
-          JSON.stringify({ message: "Image upload failed." }),
-          { status: 500 }
-        );
-      }
-    }
-
-    const otpCode = generateOTP();
+    const profileImageUrl = "/images/default-profile.png"; // Default profile image
     const omid = generateOMID(); // Generate the unique OMID
 
-    verificationCodes[email] = {
-      code: otpCode,
-      userData: {
-        username,
-        email,
-        password: hashedPassword,
-        profileImageUrl,
-        omid, // Include OMID in user data
-        provider, // Include the provider in user data
-      },
-    };
+    // Insert the new user into the users collection
+    await usersCollection.insertOne({
+      username,
+      email,
+      password: hashedPassword,
+      profileImageUrl,
+      omid,
+      provider,
+      verified: false,
+      createdAt: new Date(),
+    });
 
-    try {
-      await sendVerificationEmail(email, otpCode);
-    } catch (emailError) {
-      console.error("Email send error:", emailError);
-      return new Response(
-        JSON.stringify({ message: "Failed to send verification email." }),
-        { status: 500 }
-      );
-    }
+    // Update the userGrowthHistory collection
+    const today = new Date().toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
+    await db.collection("userGrowthHistory").updateOne(
+      { date: today },
+      { $inc: { totalUsers: 1 } }, // Increment the total user count
+      { upsert: true } // Create a new document if it doesn't exist
+    );
 
     return new Response(
       JSON.stringify({
-        message:
-          "Registration successful. Please check your email for the verification code.",
+        message: "Registration successful. Please verify your email.",
       }),
-      { status: 200 }
+      { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);

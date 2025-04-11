@@ -2,33 +2,29 @@ import { connectToDatabase } from "@/lib/mongodb";
 
 export async function DELETE(req) {
   try {
-    const { playlistId, userOmid } = await req.json();
+    const { playlistId } = await req.json();
 
-    if (!playlistId || !userOmid) {
+    if (!playlistId) {
       return new Response(
-        JSON.stringify({ message: "Playlist ID and user OMID are required." }),
+        JSON.stringify({ message: "Playlist ID is required." }),
         { status: 400 }
       );
     }
 
-    
     const { db } = await connectToDatabase();
 
     // Delete the playlist from the database
-    const result = await db.collection("playlists").deleteOne({
-      id: playlistId,
-      userOmid,
-    });
+    const result = await db.collection("playlists").deleteOne({ id: playlistId });
 
     if (result.deletedCount === 0) {
       return new Response(
-        JSON.stringify({ message: "Playlist not found or already deleted." }),
+        JSON.stringify({ message: "Playlist not found." }),
         { status: 404 }
       );
     }
 
     return new Response(
-      JSON.stringify({ message: "Playlist deleted successfully!" }),
+      JSON.stringify({ message: "Playlist deleted successfully." }),
       { status: 200 }
     );
   } catch (error) {

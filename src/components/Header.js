@@ -35,6 +35,7 @@ import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { signOut, useSession } from "next-auth/react";
 import ProfilePage from "@/app/profile/page";
 import { fetchPlaylistsData } from "@/utils/playlistData"; // Import shared playlist logic
+import NightMode from "@/components/NighMode"; // Import the Dark Mode toggle
 
 const products = [
   {
@@ -299,6 +300,9 @@ const Header = () => {
           </div>
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 items-center gap-8 relative left-72 mr-2">
+          {/* Add the NightMode toggle here */}
+          <NightMode />
+
           {/* Profile Picture with Hover Text */}
           <div className="relative group">
             <button

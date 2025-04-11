@@ -74,7 +74,7 @@ export default function OTPComponent() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4 dark:bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen p-4">
       <div className="absolute top-10 left-0 w-full h-full">
         <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center">
           <LineShadowText

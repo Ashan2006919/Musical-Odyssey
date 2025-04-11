@@ -21,7 +21,6 @@ async function connectToDatabase() {
 }
 
 // Function to generate a unique OMID
-
 function generateOMID() {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let omid = "";
@@ -43,11 +42,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           const { email, password } = credentials;
 
-          // Connect to MongoDB
           const db = await connectToDatabase();
           const usersCollection = db.collection("users");
 
-          // Check if the user exists
           const user = await usersCollection.findOne({ email });
           if (!user) {
             throw new Error(
@@ -55,7 +52,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             );
           }
 
-          // Validate the password
           const isPasswordValid = await bcrypt.compare(password, user.password);
           if (!isPasswordValid) {
             throw new Error(
@@ -63,17 +59,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             );
           }
 
-          // Return user data if authentication is successful
           return {
             id: user._id.toString(),
             omid: user.omid,
             email: user.email,
             name: user.username,
             image: user.profileImageUrl || "/images/default-profile.png",
+            isAdmin: user.isAdmin || false, // Include isAdmin in the user object
           };
         } catch (error) {
           console.error("Authorization error:", error.message);
-          throw new Error(error.message); // Pass the error message to next-auth
+          throw new Error(error.message);
         }
       },
     }),
@@ -94,6 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, account, user }) {
       const db = await connectToDatabase();
       const usersCollection = db.collection("users");
+      const userGrowthHistoryCollection = db.collection("userGrowthHistory");
 
       // On sign-in, store the user's profile information
       if (account && user) {
@@ -113,12 +110,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             omid, // Assign the generated OMID
             provider: account.provider, // Store the provider (Google, GitHub, Spotify)
             createdAt: new Date(),
+            isAdmin: false, // Default to false
           });
 
           token.omid = omid; // Include the new OMID in the token
+          token.isAdmin = false; // Default to false for new users
+          // Update the userGrowthHistory collection
+          const today = new Date().toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
+          await userGrowthHistoryCollection.updateOne(
+            { date: today },
+            { $inc: { totalUsers: 1 } }, // Increment the total user count
+            { upsert: true } // Create a new document if it doesn't exist
+          );
         } else {
-          // If the user exists, fetch their OMID
+          // If the user exists, fetch their OMID and isAdmin status
           token.omid = existingUser.omid;
+          token.isAdmin = existingUser.isAdmin || false; // Fetch isAdmin from the database
         }
 
         token.id = user.id;
@@ -138,6 +145,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.image;
+      session.user.isAdmin = token.isAdmin; // Add isAdmin to the session
       return session;
     },
   },
