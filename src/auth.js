@@ -92,60 +92,57 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const usersCollection = db.collection("users");
       const userGrowthHistoryCollection = db.collection("userGrowthHistory");
 
-      // On sign-in, store the user's profile information
       if (account && user) {
-        // Check if the user already exists in the database with the same email and provider
         const existingUser = await usersCollection.findOne({
           email: user.email,
-          provider: account.provider, // Match by email and provider
+          provider: account.provider,
         });
 
         if (!existingUser) {
-          // If the user doesn't exist, create a new user with a unique OMID
-          const omid = generateOMID(); // Generate a unique OMID
+          const omid = generateOMID();
+
           await usersCollection.insertOne({
             email: user.email,
             name: user.name || "Anonymous",
             image: user.image || "/images/default-profile.png",
-            omid, // Assign the generated OMID
-            provider: account.provider, // Store the provider (Google, GitHub, Spotify)
+            omid,
+            provider: account.provider,
             createdAt: new Date(),
-            isAdmin: false, // Default to false
+            isAdmin: false,
           });
 
-          token.omid = omid; // Include the new OMID in the token
-          token.isAdmin = false; // Default to false for new users
-          // Update the userGrowthHistory collection
-          const today = new Date().toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
+          token.omid = omid;
+          token.isAdmin = false;
+
+          // Track new user growth
+          const today = new Date().toISOString().split("T")[0];
           await userGrowthHistoryCollection.updateOne(
             { date: today },
-            { $inc: { totalUsers: 1 } }, // Increment the total user count
-            { upsert: true } // Create a new document if it doesn't exist
+            { $inc: { totalUsers: 1 } },
+            { upsert: true }
           );
         } else {
-          // If the user exists, fetch their OMID and isAdmin status
           token.omid = existingUser.omid;
-          token.isAdmin = existingUser.isAdmin || false; // Fetch isAdmin from the database
+          token.isAdmin = existingUser.isAdmin || false;
         }
 
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.image = user.image; // Store the image URL
+        token.image = user.image;
+        token.provider = account.provider;
       }
 
-      console.log("JWT token:", token); // Debugging line
       return token;
     },
+
     async session({ session, token }) {
-      console.log("Session callback triggered:", session); // Debugging line
-      console.log("Token data:", token); // Debugging line
       session.user.id = token.id;
       session.user.omid = token.omid;
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.image;
-      session.user.isAdmin = token.isAdmin; // Add isAdmin to the session
+      session.user.isAdmin = token.isAdmin;
       return session;
     },
   },

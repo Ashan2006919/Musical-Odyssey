@@ -32,16 +32,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ToastContainer, toast } from "react-toastify";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import the Avatar component
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"; // Import the Avatar component
-import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"; // Import Dialog components
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog"; // Import Dialog components
 import { useMemo } from "react"; // Import useMemo for memoization
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import { useSession } from "next-auth/react"; // Import useSession
 
 export default function UserManagementTable() {
+  const { data: session } = useSession(); // Get session data
+  const loggedInUserId = session.user.omid; // Extract the logged-in user's omid
+
   const [users, setUsers] = useState([]); // User data
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [searchType, setSearchType] = useState("username"); // Search type (username, email, user ID)
@@ -51,22 +57,31 @@ export default function UserManagementTable() {
   const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
   const [selectedUser, setSelectedUser] = useState(null); // User to make admin
   const [adminKey, setAdminKey] = useState(""); // Admin key input
+  const [isDemoteDialogOpen, setIsDemoteDialogOpen] = useState(false);
+  const [userToDemote, setUserToDemote] = useState(null); // User to demote
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete confirmation dialog
+  const [userToDelete, setUserToDelete] = useState(null); // User to delete
 
-  // Fetch users from the API
+  // Fetch all users
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/admin/users");
+      const data = await response.json();
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to fetch users.");
+    }
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch("/api/admin/users");
-        const data = await response.json();
-        setUsers(data.users || []);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Failed to fetch users.");
-      }
-    };
-
-    fetchUsers();
+    fetchUsers(); // Fetch users on component mount
   }, []);
+
+  const handleRefresh = () => {
+    fetchUsers(); // Re-fetch user data
+    toast.success("Table refreshed!");
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -80,7 +95,7 @@ export default function UserManagementTable() {
       return valueToSearch?.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [users, searchQuery, searchType]);
-  
+
   // Define table columns
   const columns = [
     {
@@ -131,7 +146,9 @@ export default function UserManagementTable() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("email")}</div>
+      ),
     },
     {
       accessorKey: "name",
@@ -161,6 +178,15 @@ export default function UserManagementTable() {
           setIsDialogOpen(true);
         };
 
+        const openMakeUserDialog = () => {
+          setUserToDemote(user);
+          setIsDemoteDialogOpen(true);
+        };
+
+        const confirmDeleteUser = (user) => {
+          setUserToDelete(user);
+          setIsDeleteDialogOpen(true);
+        };
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -177,10 +203,27 @@ export default function UserManagementTable() {
                 Copy User ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={openMakeAdminDialog}>
-                Make Admin
+              {user.isAdmin ? (
+                <DropdownMenuItem
+                  onClick={openMakeUserDialog}
+                  disabled={!loggedInUserId || loggedInUserId === user.omid}
+                >
+                  Make User
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={openMakeAdminDialog}
+                  disabled={!loggedInUserId || loggedInUserId === user.omid}
+                >
+                  Make Admin
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => confirmDeleteUser(user)}
+                disabled={!loggedInUserId || loggedInUserId === user.omid}
+              >
+                Delete User
               </DropdownMenuItem>
-              <DropdownMenuItem>Delete User</DropdownMenuItem>
               <DropdownMenuItem>View Details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -190,27 +233,25 @@ export default function UserManagementTable() {
   ];
 
   const handleMakeAdmin = async () => {
+    if (!selectedUser) {
+      toast.error("No user selected.");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/admin/makeAdmin`, {
+      const response = await fetch("/api/admin/makeAdmin", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: selectedUser.omid, key: adminKey }), // Pass the key
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selectedUser.omid, key: adminKey }),
       });
 
-      if (response.ok) {
-        toast.success(`${selectedUser.name} is now an admin.`);
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.omid === selectedUser.omid
-              ? { ...user, isAdmin: true }
-              : user
-          )
-        );
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error making admin:", data.message);
+        toast.error(data.message || "Something went wrong");
       } else {
-        const data = await response.json();
-        toast.error(data.message || "Failed to make user an admin.");
+        toast.success(data.message);
+        fetchUsers(); // Refresh the table data
       }
     } catch (error) {
       console.error("Error making user an admin:", error);
@@ -219,6 +260,66 @@ export default function UserManagementTable() {
 
     setIsDialogOpen(false);
     setAdminKey("");
+  };
+
+  const handleMakeUser = async () => {
+    if (!userToDemote) {
+      toast.error("No user selected.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/admin/makeUser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userToDemote.omid, key: adminKey }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error making user:", data.message);
+        toast.error(data.message || "Something went wrong");
+      } else {
+        toast.success(data.message);
+        fetchUsers(); // Refresh the table data
+      }
+    } catch (error) {
+      console.error("Error making admin a user:", error);
+      toast.error("An error occurred. Please try again.");
+    }
+
+    setIsDemoteDialogOpen(false);
+    setAdminKey("");
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) {
+      toast.error("No user selected.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/deleteUser`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userToDelete.omid }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error deleting user:", data.message);
+        toast.error(data.message || "Something went wrong");
+      } else {
+        toast.success(data.message);
+        fetchUsers(); // Refresh the table data
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("An error occurred. Please try again.");
+    }
+
+    setIsDeleteDialogOpen(false);
+    setUserToDelete(null);
   };
 
   const table = useReactTable({
@@ -248,6 +349,9 @@ export default function UserManagementTable() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-grow px-4 py-2 border rounded-lg"
         />
+        <Button variant="outline" onClick={handleRefresh}>
+          Refresh
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -293,10 +397,7 @@ export default function UserManagementTable() {
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
               </TableRow>
@@ -311,27 +412,72 @@ export default function UserManagementTable() {
         </TableBody>
       </Table>
 
-      {/* Dialog for Make Admin */}
-      {isDialogOpen && (
-        <Dialog>
-          <DialogContent>
-            <DialogHeader>Enter Admin Key</DialogHeader>
-            <Input
-              type="text"
-              placeholder="Enter key..."
-              value={adminKey}
-              onChange={(e) => setAdminKey(e.target.value)}
-              className="mb-4"
-            />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleMakeAdmin}>Confirm</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Admin Key</DialogTitle>
+          </DialogHeader>
+          <Input
+            type="text"
+            placeholder="Enter key..."
+            value={adminKey}
+            onChange={(e) => setAdminKey(e.target.value)}
+            className="mb-4"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleMakeAdmin}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDemoteDialogOpen} onOpenChange={setIsDemoteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Admin Key</DialogTitle>
+          </DialogHeader>
+          <Input
+            type="text"
+            placeholder="Enter key..."
+            value={adminKey}
+            onChange={(e) => setAdminKey(e.target.value)}
+            className="mb-4"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDemoteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleMakeUser}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this user?</p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
