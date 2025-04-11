@@ -38,6 +38,8 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"; // Import the Avatar component
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"; // Import Dialog components
+import { useMemo } from "react"; // Import useMemo for memoization
+import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 
 export default function UserManagementTable() {
   const [users, setUsers] = useState([]); // User data
@@ -66,18 +68,19 @@ export default function UserManagementTable() {
     fetchUsers();
   }, []);
 
-  // Filter users based on the search query and type
-  const filteredUsers = users.filter((user) => {
-    if (!searchQuery) return true;
-    const valueToSearch =
-      searchType === "username"
-        ? user.name
-        : searchType === "email"
-        ? user.email
-        : user.omid;
-    return valueToSearch?.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      if (!searchQuery) return true;
+      const valueToSearch =
+        searchType === "username"
+          ? user.name
+          : searchType === "email"
+          ? user.email
+          : user.omid;
+      return valueToSearch?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [users, searchQuery, searchType]);
+  
   // Define table columns
   const columns = [
     {
