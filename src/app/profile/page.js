@@ -19,6 +19,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { FaTrash } from "react-icons/fa";
 import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the confirmation dialog
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/nav/app-sidebar"; // Import the sidebar component
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -257,7 +263,7 @@ const ProfilePage = () => {
       </h1>
       <div className="grid gap-6 grid-cols-4 auto-rows-auto">
         {/* Profile Card */}
-        <Card className="col-span-4 md:col-span-1 bg-white shadow-md rounded-lg row-span-3 md:row-span-2">
+        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg row-span-3 md:row-span-2">
           <CardHeader>
             <CardTitle><Badge className="w-fit -ml-3 -mt-3 absolute">Profile</Badge></CardTitle>
           </CardHeader>
@@ -282,11 +288,12 @@ const ProfilePage = () => {
                   className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
-              <p className="text-lg font-semibold text-gray-700">
+              <p className="text-2xl font-semibold">
                 {user.name || "N/A"}
               </p>
-              <p className="text-gray-600">{user.email || "N/A"}</p>
-              <p className="text-gray-600">OMID: {user.omid || "N/A"}</p>
+              
+              <p className="text-gray-600 dark:text-gray-400 text-xs">#<span onClick={()=> navigator.clipboard.writeText(user.omid)}>{user.omid || "N/A"}</span></p>
+              <p className="text-gray-600 dark:text-gray-300">{user.email || "N/A"}</p>
               <p className="text-gray-600">
                 {user?.provider === "google"
                   ? "Logged in via Google"
@@ -305,7 +312,7 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
         {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 bg-white shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
+        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
           <CardHeader>
           <CardTitle><Badge className="w-fit -ml-3 -mt-3 absolute">Extra Details</Badge></CardTitle>
           </CardHeader>
@@ -314,7 +321,7 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
         {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 bg-white shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
+        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
           <CardHeader>
             <CardTitle>Extra Details</CardTitle>
           </CardHeader>
@@ -323,7 +330,7 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
         {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 bg-white shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
+        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
           <CardHeader>
             <CardTitle>Extra Details</CardTitle>
           </CardHeader>
@@ -332,7 +339,7 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
         {/* Predefined Playlists Section */}
-        <Card className="md:col-span-2 col-span-4 row-span-2 bg-white shadow-md rounded-lg p-4">
+        <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-4">
           <CardHeader>
             <CardTitle>
               <Badge className="w-fit ml-2 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">
@@ -354,7 +361,7 @@ const ProfilePage = () => {
 
             {/* Scrollable Playlist Grid */}
             {filteredPredefinedPlaylists.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
                 {filteredPredefinedPlaylists.map((playlist) => (
                   <div
                     key={playlist.id}
@@ -374,7 +381,7 @@ const ProfilePage = () => {
                       >
                         {playlist.name}
                       </a>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {playlist.description}
                       </p>
                     </div>
@@ -390,7 +397,7 @@ const ProfilePage = () => {
         </Card>
 
         {/* User Playlists Section */}
-        <Card className="md:col-span-2 col-span-4 row-span-2 bg-white shadow-md rounded-lg p-4">
+        <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-2">
           <CardHeader>
           <CardTitle><Badge className="w-fit ml-1 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">Your Playlists</Badge></CardTitle>
           </CardHeader>
@@ -412,9 +419,9 @@ const ProfilePage = () => {
               </Button>
             </div>
 
-            {/* Scrollable Playlist Grid */}
-            {filteredUserPlaylists.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+           {/* Scrollable Playlist Grid */}
+           {filteredUserPlaylists.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
                 {filteredUserPlaylists.map((playlist) => (
                   <div
                     key={playlist.id}
@@ -434,23 +441,16 @@ const ProfilePage = () => {
                       >
                         {playlist.name}
                       </a>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {playlist.description}
                       </p>
                     </div>
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDeleteClick(playlist.id)}
-                      className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
-                    >
-                      <FaTrash /> {/* Trash Icon */}
-                    </button>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-center text-gray-500">
-                You have not added any playlists yet.
+                No playlists available. Add some to get started!
               </p>
             )}
           </CardContent>
@@ -459,7 +459,7 @@ const ProfilePage = () => {
         {/* Other Cards */}
 
         {/* Calendar Card */}
-        <Card className="col-span-3 md:col-span-1 bg-white shadow-md rounded-lg p-4 row-span-3 md:row-span-1">
+        <Card className="col-span-3 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-1">
           <CardHeader>
             <CardTitle>Calendar</CardTitle>
           </CardHeader>

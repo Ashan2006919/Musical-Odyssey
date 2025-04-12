@@ -105,6 +105,7 @@ const RatingsPage = () => {
                   `/api/spotify/details?trackId=${trackId}`
                 );
                 const trackData = trackResponse.data;
+
                 return {
                   trackId,
                   name: trackData.name,
@@ -112,6 +113,7 @@ const RatingsPage = () => {
                   albumArtist: trackData.artists
                     .map((artist) => artist.name)
                     .join(", "),
+                  artistId: trackData.artists[0]?.id, // Ensure artistId is included
                   albumCover: trackData.album.images[0]?.url,
                   releaseDate: trackData.album.release_date,
                 };
@@ -637,10 +639,17 @@ const RatingsPage = () => {
                       className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
                     />
                     <div className="flex flex-col">
-                      <h2 className="text-2xl font-bold text-wrap">
+                      <a
+                        href={`https://open.spotify.com/album/${selectedRating.albumId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-2xl font-bold text-wrap text-orange-500 hover:text-blue-500 hover:underline"
+                      >
                         {selectedRating.trackDetails[0]?.albumName}
-                      </h2>
-                      <p className="text-gray-600 text-wrap">
+                      </a>
+                      <p
+                        className="text-gray-600 text-wrap"
+                      >
                         {selectedRating.trackDetails[0]?.albumArtist}
                       </p>
                       <p className="text-gray-600 text-sm mt-1 text-wrap">
@@ -657,7 +666,7 @@ const RatingsPage = () => {
               </DialogHeader>
               <hr />
               <DialogDescription className="text-gray-600 text-sm text-wrap">
-                Track ratings for this album :
+                Track ratings for this album:
               </DialogDescription>
               <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
                 {selectedRating.trackDetails.map((track) => (
@@ -674,10 +683,26 @@ const RatingsPage = () => {
                         />
                       </div>
                       <div>
-                        <p className="text-base font-semibold text-gray-800 text-wrap">
+                        <a
+                          href={`https://open.spotify.com/track/${track.trackId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-semibold text-gray-800 text-wrap hover:text-blue-500 hover:underline"
+                        >
                           {track.name}
+                        </a>
+                        <p className="text-sm text-gray-500">
+                          #
+                          <span
+                            onClick={() =>
+                              navigator.clipboard.writeText(track.trackId)
+                            }
+                            className="cursor-pointer hover:text-blue-500"
+                            title="Click to copy Spotify track ID"
+                          >
+                            {track.trackId}
+                          </span>
                         </p>
-                        <p className="text-sm text-gray-500">{track.trackId}</p>
                       </div>
                     </div>
 

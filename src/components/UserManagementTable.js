@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useReducer } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -43,34 +43,57 @@ import {
 import { useMemo } from "react"; // Import useMemo for memoization
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import { useSession } from "next-auth/react"; // Import useSession
+import { useVirtualizer } from "@tanstack/react-virtual"; // Import useVirtualizer
+import { useDebounce } from "use-debounce"; // Install if not already installed
+
+const initialState = {
+  users: [],
+  searchQuery: "",
+  searchType: "username",
+  sorting: [],
+  columnVisibility: {},
+  rowSelection: {},
+  isDialogOpen: false,
+  selectedUser: null,
+  adminKey: "",
+  isDemoteDialogOpen: false,
+  userToDemote: null,
+  isDeleteDialogOpen: false,
+  userToDelete: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "SET_USERS":
+      return { ...state, users: action.payload };
+    case "SET_SEARCH_QUERY":
+      return { ...state, searchQuery: action.payload };
+    // Add other cases as needed
+    default:
+      return state;
+  }
+}
 
 export default function UserManagementTable() {
   const { data: session } = useSession(); // Get session data
   const loggedInUserId = session.user.omid; // Extract the logged-in user's omid
 
-  const [users, setUsers] = useState([]); // User data
-  const [searchQuery, setSearchQuery] = useState(""); // Search query
-  const [searchType, setSearchType] = useState("username"); // Search type (username, email, user ID)
-  const [sorting, setSorting] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
-  const [selectedUser, setSelectedUser] = useState(null); // User to make admin
-  const [adminKey, setAdminKey] = useState(""); // Admin key input
-  const [isDemoteDialogOpen, setIsDemoteDialogOpen] = useState(false);
-  const [userToDemote, setUserToDemote] = useState(null); // User to demote
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete confirmation dialog
-  const [userToDelete, setUserToDelete] = useState(null); // User to delete
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const parentRef = useRef(); // Ref for virtual scrolling
+
+  const [debouncedSearchQuery] = useDebounce(state.searchQuery, 300);
 
   // Fetch all users
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/admin/users");
       const data = await response.json();
-      setUsers(data.users || []);
+      dispatch({ type: "SET_USERS", payload: data.users || [] }); // Fallback to an empty array
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to fetch users.");
+      dispatch({ type: "SET_USERS", payload: [] }); // Ensure users is always an array
     }
   };
 
@@ -84,17 +107,27 @@ export default function UserManagementTable() {
   };
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      if (!searchQuery) return true;
+    if (!state.users || state.users.length === 0) return []; // Fallback to an empty array
+    return state.users.filter((user) => {
+      if (!debouncedSearchQuery) return true;
       const valueToSearch =
-        searchType === "username"
+        state.searchType === "username"
           ? user.name
-          : searchType === "email"
+          : state.searchType === "email"
           ? user.email
           : user.omid;
-      return valueToSearch?.toLowerCase().includes(searchQuery.toLowerCase());
+      return valueToSearch
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase());
     });
-  }, [users, searchQuery, searchType]);
+  }, [state.users, debouncedSearchQuery, state.searchType]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredUsers.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 10,
+  });
 
   // Define table columns
   const columns = [
@@ -174,18 +207,18 @@ export default function UserManagementTable() {
         const user = row.original;
 
         const openMakeAdminDialog = () => {
-          setSelectedUser(user);
-          setIsDialogOpen(true);
+          dispatch({ type: "SET_SELECTED_USER", payload: user });
+          dispatch({ type: "SET_IS_DIALOG_OPEN", payload: true });
         };
 
         const openMakeUserDialog = () => {
-          setUserToDemote(user);
-          setIsDemoteDialogOpen(true);
+          dispatch({ type: "SET_USER_TO_DEMOTE", payload: user });
+          dispatch({ type: "SET_IS_DEMOTE_DIALOG_OPEN", payload: true });
         };
 
         const confirmDeleteUser = (user) => {
-          setUserToDelete(user);
-          setIsDeleteDialogOpen(true);
+          dispatch({ type: "SET_USER_TO_DELETE", payload: user });
+          dispatch({ type: "SET_IS_DELETE_DIALOG_OPEN", payload: true });
         };
         return (
           <DropdownMenu>
@@ -233,7 +266,7 @@ export default function UserManagementTable() {
   ];
 
   const handleMakeAdmin = async () => {
-    if (!selectedUser) {
+    if (!state.selectedUser) {
       toast.error("No user selected.");
       return;
     }
@@ -242,7 +275,10 @@ export default function UserManagementTable() {
       const response = await fetch("/api/admin/makeAdmin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedUser.omid, key: adminKey }),
+        body: JSON.stringify({
+          userId: state.selectedUser.omid,
+          key: state.adminKey,
+        }),
       });
 
       const data = await response.json();
@@ -258,12 +294,12 @@ export default function UserManagementTable() {
       toast.error("An error occurred. Please try again.");
     }
 
-    setIsDialogOpen(false);
-    setAdminKey("");
+    dispatch({ type: "SET_IS_DIALOG_OPEN", payload: false });
+    dispatch({ type: "SET_ADMIN_KEY", payload: "" });
   };
 
   const handleMakeUser = async () => {
-    if (!userToDemote) {
+    if (!state.userToDemote) {
       toast.error("No user selected.");
       return;
     }
@@ -272,7 +308,10 @@ export default function UserManagementTable() {
       const response = await fetch("/api/admin/makeUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userToDemote.omid, key: adminKey }),
+        body: JSON.stringify({
+          userId: state.userToDemote.omid,
+          key: state.adminKey,
+        }),
       });
 
       const data = await response.json();
@@ -288,12 +327,12 @@ export default function UserManagementTable() {
       toast.error("An error occurred. Please try again.");
     }
 
-    setIsDemoteDialogOpen(false);
-    setAdminKey("");
+    dispatch({ type: "SET_IS_DEMOTE_DIALOG_OPEN", payload: false });
+    dispatch({ type: "SET_ADMIN_KEY", payload: "" });
   };
 
   const handleDeleteUser = async () => {
-    if (!userToDelete) {
+    if (!state.userToDelete) {
       toast.error("No user selected.");
       return;
     }
@@ -302,7 +341,7 @@ export default function UserManagementTable() {
       const response = await fetch(`/api/admin/deleteUser`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userToDelete.omid }),
+        body: JSON.stringify({ userId: state.userToDelete.omid }),
       });
 
       const data = await response.json();
@@ -318,24 +357,27 @@ export default function UserManagementTable() {
       toast.error("An error occurred. Please try again.");
     }
 
-    setIsDeleteDialogOpen(false);
-    setUserToDelete(null);
+    dispatch({ type: "SET_IS_DELETE_DIALOG_OPEN", payload: false });
+    dispatch({ type: "SET_USER_TO_DELETE", payload: null });
   };
 
   const table = useReactTable({
     data: filteredUsers,
     columns,
-    onSortingChange: setSorting,
+    onSortingChange: (sorting) =>
+      dispatch({ type: "SET_SORTING", payload: sorting }),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: (columnVisibility) =>
+      dispatch({ type: "SET_COLUMN_VISIBILITY", payload: columnVisibility }),
+    onRowSelectionChange: (rowSelection) =>
+      dispatch({ type: "SET_ROW_SELECTION", payload: rowSelection }),
     state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
+      sorting: state.sorting,
+      columnVisibility: state.columnVisibility,
+      rowSelection: state.rowSelection,
     },
   });
 
@@ -344,9 +386,11 @@ export default function UserManagementTable() {
       <div className="flex items-center gap-4 mb-4">
         <Input
           type="text"
-          placeholder={`Search by ${searchType}...`}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={`Search by ${state.searchType}...`}
+          value={state.searchQuery}
+          onChange={(e) =>
+            dispatch({ type: "SET_SEARCH_QUERY", payload: e.target.value })
+          }
           className="flex-grow px-4 py-2 border rounded-lg"
         />
         <Button variant="outline" onClick={handleRefresh}>
@@ -359,13 +403,25 @@ export default function UserManagementTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSearchType("username")}>
+            <DropdownMenuItem
+              onClick={() =>
+                dispatch({ type: "SET_SEARCH_TYPE", payload: "username" })
+              }
+            >
               Username
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSearchType("email")}>
+            <DropdownMenuItem
+              onClick={() =>
+                dispatch({ type: "SET_SEARCH_TYPE", payload: "email" })
+              }
+            >
               Email
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSearchType("omid")}>
+            <DropdownMenuItem
+              onClick={() =>
+                dispatch({ type: "SET_SEARCH_TYPE", payload: "omid" })
+              }
+            >
               User ID
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -388,31 +444,46 @@ export default function UserManagementTable() {
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+        <TableBody
+          ref={parentRef}
+          style={{ overflowY: "auto", maxHeight: "400px" }}
+        >
+          {rowVirtualizer?.getVirtualItems()?.length > 0 ? (
+            rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = table.getRowModel().rows[virtualRow.index];
+              return (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
+              <TableCell colSpan={columns.length}>No users found.</TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={state.isDialogOpen}
+        onOpenChange={(isOpen) =>
+          dispatch({ type: "SET_IS_DIALOG_OPEN", payload: isOpen })
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Enter Admin Key</DialogTitle>
@@ -420,12 +491,19 @@ export default function UserManagementTable() {
           <Input
             type="text"
             placeholder="Enter key..."
-            value={adminKey}
-            onChange={(e) => setAdminKey(e.target.value)}
+            value={state.adminKey}
+            onChange={(e) =>
+              dispatch({ type: "SET_ADMIN_KEY", payload: e.target.value })
+            }
             className="mb-4"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                dispatch({ type: "SET_IS_DIALOG_OPEN", payload: false })
+              }
+            >
               Cancel
             </Button>
             <Button onClick={handleMakeAdmin}>Confirm</Button>
@@ -433,7 +511,12 @@ export default function UserManagementTable() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDemoteDialogOpen} onOpenChange={setIsDemoteDialogOpen}>
+      <Dialog
+        open={state.isDemoteDialogOpen}
+        onOpenChange={(isOpen) =>
+          dispatch({ type: "SET_IS_DEMOTE_DIALOG_OPEN", payload: isOpen })
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Enter Admin Key</DialogTitle>
@@ -441,14 +524,18 @@ export default function UserManagementTable() {
           <Input
             type="text"
             placeholder="Enter key..."
-            value={adminKey}
-            onChange={(e) => setAdminKey(e.target.value)}
+            value={state.adminKey}
+            onChange={(e) =>
+              dispatch({ type: "SET_ADMIN_KEY", payload: e.target.value })
+            }
             className="mb-4"
           />
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDemoteDialogOpen(false)}
+              onClick={() =>
+                dispatch({ type: "SET_IS_DEMOTE_DIALOG_OPEN", payload: false })
+              }
             >
               Cancel
             </Button>
@@ -459,7 +546,12 @@ export default function UserManagementTable() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog
+        open={state.isDeleteDialogOpen}
+        onOpenChange={(isOpen) =>
+          dispatch({ type: "SET_IS_DELETE_DIALOG_OPEN", payload: isOpen })
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
@@ -468,7 +560,9 @@ export default function UserManagementTable() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() =>
+                dispatch({ type: "SET_IS_DELETE_DIALOG_OPEN", payload: false })
+              }
             >
               Cancel
             </Button>

@@ -275,6 +275,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center mt-10 min-h-screen px-6">
+     
       {/* Title */}
       <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center">
         Welcome to
@@ -285,7 +286,6 @@ export default function Home() {
           Musical Odyssey!
         </LineShadowText>
       </h1>
-
       {/* Search Input */}
       <div className="flex items-center justify-center gap-4 mt-8 w-full max-w-lg">
         <Input
@@ -312,7 +312,6 @@ export default function Home() {
           </span>
         </AnimatedSubscribeButton>
       </div>
-
       {/* Genre Filter */}
       <div className="mb-6 mt-8 w-full max-w-lg">
         <DropdownMenu>
@@ -343,10 +342,8 @@ export default function Home() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
       {/* Error Message */}
       {error && <p className="text-red-500 text-center">{error}</p>}
-
       {/* Random Albums Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pb-10 pt-5">
@@ -360,7 +357,7 @@ export default function Home() {
             {randomAlbums.map((album) => (
               <Card
                 key={album.id}
-                className="relative w-full overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out"
+                className="relative w-full overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out dark:border-gray-500 border"
               >
                 {/* Background Cover (Blurred, More Visible) */}
                 <div
@@ -425,7 +422,6 @@ export default function Home() {
           </div>
         )
       )}
-
       {/* Albums by Selected Genres Grid */}
       {albumsBySelectedGenres.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pb-10 pt-5">
@@ -496,7 +492,6 @@ export default function Home() {
           ))}
         </div>
       )}
-
       {/* Modal for Album Selection */}
       <Modal
         isOpen={isModalOpen}
@@ -536,16 +531,18 @@ export default function Home() {
                 >
                   {/* Blurred Background */}
                   <div
-                   className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm"
+                    className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm"
                     style={{
                       backgroundImage: `url(${album.images[0]?.url})`, // Set the album cover as the background
                     }}
                   ></div>
 
                   {/* Dark Overlay */}
-                  <div className="absolute inset-0 bg-black/30 rounded-xl 
+                  <div
+                    className="absolute inset-0 bg-black/30 rounded-xl 
               before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 
-              before:bg-gradient-to-t before:to-transparent"></div>
+              before:bg-gradient-to-t before:to-transparent"
+                  ></div>
 
                   {/* Album Content */}
                   <div className="relative z-10 flex items-center gap-4">

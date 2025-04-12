@@ -7,6 +7,22 @@ import ProgressBar from "../components/ProgressBar"; // ✅ Import the new compo
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppSidebar } from "@/components/nav/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { useEffect } from "react";
 
 export default function RootLayout({ children }) {
   return (
@@ -20,20 +36,29 @@ export default function RootLayout({ children }) {
           content="A platform for exploring and rating albums from Spotify"
         />
       </head>
-      <body className="bg-white dark:bg-gray-900">
+      <body className="bg-white dark:bg-black text-black dark:text-white">
         <SessionProvider>
-          {/* Wrap the application with ThemeProvider */}
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            {/* Wrap the application with SessionProvider */}
-            <ProgressBar /> {/* ✅ Use the client component here */}
-            <Header />
-            {children}
-            <Footer />
+            <ProgressBar />
+            {/* Header */}
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <Header title="Test Page" />
+                {/* Main Layout */}
+                <div className="main-layout">
+                  {/* Sidebar and Content */}
+                  <div className="content-layout">{children}</div>
+                </div>
+                {/* Footer */}
+                <Footer />
+              </SidebarInset>
+            </SidebarProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

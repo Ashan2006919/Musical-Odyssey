@@ -4,6 +4,7 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const userOmid = searchParams.get("userOmid");
+    console.log("Received userOmid in API:", userOmid); // Debugging
 
     if (!userOmid) {
       return new Response(
@@ -19,6 +20,8 @@ export async function GET(req) {
       .collection("playlists")
       .find({ userOmid })
       .toArray();
+
+    console.log("Playlists fetched from database:", playlists); // Debugging
 
     return new Response(JSON.stringify({ playlists }), { status: 200 });
   } catch (error) {

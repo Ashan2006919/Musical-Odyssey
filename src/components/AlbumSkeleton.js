@@ -33,7 +33,7 @@ const chartConfig = {
 
 export function AlbumSkeletonRandom() {
   return (
-    <div className="relative w-[450px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out">
+    <div className="relative w-[450px] sm:w-[400px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out">
       <Skeleton className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm" />
       <div className="absolute inset-0 bg-black/10 rounded-xl before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 before:bg-gradient-to-t before:to-transparent"></div>
       <div className="relative flex items-center gap-x-6 p-6 flex-nowrap">

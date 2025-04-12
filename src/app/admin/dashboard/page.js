@@ -26,6 +26,21 @@ import AdminAddPlaylistDialog from "@/components/AdminAddPlaylistDialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the confirmation dialog
 import UserManagementTable from "@/components/UserManagementTable";
 import "react-toastify/dist/ReactToastify.css";
+import { AppSidebar } from "@/components/nav/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession(); // Get session data
@@ -234,219 +249,230 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="grid gap-6 grid-cols-4 auto-rows-auto p-6">
-      {/* Total Users Card */}
-      <Card className="col-span-4 md:col-span-1 bg-white shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle>Total Users</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-4xl font-bold">{totalUsers}</p>
-        </CardContent>
-      </Card>
+        <div className="grid gap-6 grid-cols-4 auto-rows-auto p-6">
+          {/* Total Users Card */}
+          <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg">
+            <CardHeader>
+              <CardTitle>Total Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold">{totalUsers}</p>
+            </CardContent>
+          </Card>
 
-      {/* User Growth Chart */}
-      <Card className="col-span-4 md:col-span-3 bg-white shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle>User Growth Over Time</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig}>
-            <LineChart
-              width={600}
-              height={300}
-              data={userStats}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickLine={false} axisLine={false} />
-              <YAxis
-                dataKey="users"
-                domain={["auto", "auto"]}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Line
-                type="monotone"
-                dataKey="users"
-                stroke="var(--color-desktop)"
-                strokeWidth={3}
-                dot={{
-                  fill: "var(--color-desktop)",
-                }}
-                activeDot={{
-                  r: 6,
-                }}
-              />
-            </LineChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      {/* Predefined Playlists Section */}
-      <Card className="col-span-4 bg-white shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle>Predefined Playlists</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Search Bar and Add Playlist */}
-          <div className="flex items-center gap-4 mb-4">
-            <Input
-              type="text"
-              placeholder="Search predefined playlists..."
-              value={predefinedSearchQuery}
-              onChange={handlePredefinedSearch}
-              className="w-full px-4 py-2 border rounded-lg"
-            />
-
-            <Button
-              onClick={() => setIsDialogOpen(true)}
-              className="bg-blue-500 text-white"
-            >
-              + Add Playlist
-            </Button>
-          </div>
-
-          {/* Scrollable Playlist Grid */}
-          {filteredPredefinedPlaylists.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-              {filteredPredefinedPlaylists.map((playlist) => (
-                <div
-                  key={playlist.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
+          {/* User Growth Chart */}
+          <Card className="col-span-4 md:col-span-3 shadow-md rounded-lg">
+            <CardHeader>
+              <CardTitle>User Growth Over Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig}>
+                <LineChart
+                  width={600}
+                  height={300}
+                  data={userStats}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                 >
-                  <img
-                    src={playlist.imageUrl}
-                    alt={playlist.name}
-                    className="h-16 w-16 rounded-lg object-cover"
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} />
+                  <YAxis
+                    dataKey="users"
+                    domain={["auto", "auto"]}
+                    tickLine={false}
+                    axisLine={false}
                   />
-                  <div>
-                    <a
-                      href={playlist.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-lg font-semibold text-blue-500 hover:underline"
+                  <Tooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="users"
+                    stroke="var(--color-desktop)"
+                    strokeWidth={3}
+                    dot={{
+                      fill: "var(--color-desktop)",
+                    }}
+                    activeDot={{
+                      r: 6,
+                    }}
+                  />
+                </LineChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Predefined Playlists Section */}
+          <Card className="col-span-4 shadow-md rounded-lg">
+            <CardHeader>
+              <CardTitle>Predefined Playlists</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Search Bar and Add Playlist */}
+              <div className="flex items-center gap-4 mb-4">
+                <Input
+                  type="text"
+                  placeholder="Search predefined playlists..."
+                  value={predefinedSearchQuery}
+                  onChange={handlePredefinedSearch}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-blue-500 text-white hover:bg-blue-600"
+                  variant="outline"
+                >
+                  + Add Playlist
+                </Button>
+              </div>
+
+              {/* Scrollable Playlist Grid */}
+              {filteredPredefinedPlaylists.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                  {filteredPredefinedPlaylists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
                     >
-                      {playlist.name}
-                    </a>
-                    <p className="text-sm text-gray-600">
-                      {playlist.description}
-                    </p>
-                  </div>
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteClick(playlist.id, "predefined")}
-                    className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash /> {/* Trash Icon */}
-                  </button>
+                      <img
+                        src={playlist.imageUrl}
+                        alt={playlist.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div>
+                        <a
+                          href={playlist.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-lg font-semibold text-blue-500 hover:underline"
+                        >
+                          {playlist.name}
+                        </a>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {playlist.description}
+                        </p>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={() =>
+                          handleDeleteClick(playlist.id, "predefined")
+                        }
+                        className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash /> {/* Trash Icon */}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-gray-500">
-              No predefined playlists available.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No predefined playlists available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* User-Added Playlists Section */}
-      <Card className="col-span-4 bg-white shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle>User-Added Playlists</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Search Fields */}
-          <div className="flex gap-4 mb-4">
-            <Input
-              type="text"
-              placeholder="Search by playlist name..."
-              value={playlistSearchQuery}
-              onChange={(e) => setPlaylistSearchQuery(e.target.value)} // Update query on input change
-              className="flex-grow px-4 py-2 border rounded-lg"
-            />
-            <Input
-              type="text"
-              placeholder="Search by user ID..."
-              value={userIdSearchQuery}
-              onChange={(e) => setUserIdSearchQuery(e.target.value)} // Update query on input change
-              className="flex-grow px-4 py-2 border rounded-lg"
-            />
-          </div>
+          {/* User-Added Playlists Section */}
+          <Card className="col-span-4 shadow-md rounded-lg">
+            <CardHeader>
+              <CardTitle>User-Added Playlists</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Search Fields */}
+              <div className="flex gap-4 mb-4">
+                <Input
+                  type="text"
+                  placeholder="Search by playlist name..."
+                  value={playlistSearchQuery}
+                  onChange={(e) => setPlaylistSearchQuery(e.target.value)} // Update query on input change
+                  className="flex-grow px-4 py-2 border rounded-lg"
+                />
+                <Input
+                  type="text"
+                  placeholder="Search by user ID..."
+                  value={userIdSearchQuery}
+                  onChange={(e) => setUserIdSearchQuery(e.target.value)} // Update query on input change
+                  className="flex-grow px-4 py-2 border rounded-lg"
+                />
+              </div>
 
-          {/* Scrollable Playlist Grid */}
-          {filteredUserAddedPlaylists.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-              {filteredUserAddedPlaylists.map((playlist) => (
-                <div
-                  key={playlist.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
-                >
-                  <img
-                    src={playlist.imageUrl}
-                    alt={playlist.name}
-                    className="h-16 w-16 rounded-lg object-cover"
-                  />
-                  <div>
-                    <p className="text-lg font-semibold text-gray-800">
-                      {playlist.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      User ID: {playlist.userOmid}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {playlist.description}
-                    </p>
-                  </div>
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteClick(playlist.id, "userAdded")}
-                    className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash /> {/* Trash Icon */}
-                  </button>
+              {/* Scrollable Playlist Grid */}
+              {filteredUserAddedPlaylists.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                  {filteredUserAddedPlaylists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
+                    >
+                      <img
+                        src={playlist.imageUrl}
+                        alt={playlist.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div>
+                        <p className="text-lg font-semibold text-blue-500 hover:underline">
+                          {playlist.name}
+                        </p>
+                        <p
+                          className="text-xs text-gray-600 dark:text-gray-400"
+                          onClick={() =>
+                            navigator.clipboard.writeText(playlist.userOmid)
+                          }
+                          title="Click to copy user ID"
+                        >
+                          User ID: {playlist.userOmid}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {playlist.description}
+                        </p>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={() =>
+                          handleDeleteClick(playlist.id, "userAdded")
+                        }
+                        className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash /> {/* Trash Icon */}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-gray-500">
-              No user-added playlists available.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No user-added playlists available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-      <Card className="col-span-4 bg-white shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* User Management Table */}
-          <UserManagementTable />
-        </CardContent>
-      </Card>
+          <Card className="col-span-4 shadow-md rounded-lg">
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* User Management Table */}
+              <UserManagementTable />
+            </CardContent>
+          </Card>
 
-      {/* Add Playlist Dialog */}
-      <AdminAddPlaylistDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onPlaylistAdded={handlePlaylistAdded}
-      />
+          {/* Add Playlist Dialog */}
+          <AdminAddPlaylistDialog
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            onPlaylistAdded={handlePlaylistAdded}
+          />
 
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={isConfirmDialogOpen}
-        onClose={() => setIsConfirmDialogOpen(false)}
-        onConfirm={handleConfirmDelete}
-        message="Are you sure you want to delete this playlist? This action cannot be undone."
-      />
+          {/* Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={isConfirmDialogOpen}
+            onClose={() => setIsConfirmDialogOpen(false)}
+            onConfirm={handleConfirmDelete}
+            message="Are you sure you want to delete this playlist? This action cannot be undone."
+          />
 
-      <ToastContainer />
-    </div>
+          <ToastContainer />
+        </div>
   );
 }
