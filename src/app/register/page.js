@@ -115,7 +115,7 @@ export default function RegisterPage() {
       {/* Top/Left side for the image */}
       <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
         <img
-          src="/images/cartoon-boy-with-headphones-listening-to.jpg"
+          src="/images/musicvideo-3d.png"
           alt="Login Illustration"
           className="max-w-full max-h-full object-cover"
         />
@@ -128,7 +128,7 @@ export default function RegisterPage() {
             className="italic text-primary ml-3 whitespace-nowrap mb-10"
             shadowColor={shadowColor}
           >
-            Music Odyssey!
+            Musical Odyssey!
           </LineShadowText>
         </h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -253,7 +253,7 @@ export default function RegisterPage() {
         </div>
         <div className="mt-5 text-center">
           <Link href="/login">
-            <p className="px-6 py-2">Already have an account?: <span className="text-blue-500 underline"> Login </span></p>
+            <p className="px-6 py-1 mb-3">Already have an account?: <span className="text-blue-500 underline"> Login </span></p>
           </Link>
         </div>
       </div>

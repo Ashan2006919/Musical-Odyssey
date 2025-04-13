@@ -25,6 +25,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/nav/app-sidebar"; // Import the sidebar component
+import axios from "axios";
+import RatingLabel from "@/components/RatingLabel";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -42,6 +46,9 @@ const ProfilePage = () => {
   const [albumRatingsCount, setAlbumRatingsCount] = useState(0); // New state for album ratings count
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [playlistToDelete, setPlaylistToDelete] = useState(null);
+  const [ratedAlbums, setRatedAlbums] = useState([]); // State for rated albums
+  const [albumSearchQuery, setAlbumSearchQuery] = useState(""); // State for album search query
+  const [filteredRatedAlbums, setFilteredRatedAlbums] = useState([]); // State for filtered albums
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   const router = useRouter();
@@ -74,7 +81,7 @@ const ProfilePage = () => {
         toast.error("Failed to fetch predefined playlists.");
       }
     };
-  
+
     fetchPredefinedPlaylists();
   }, []);
 
@@ -117,6 +124,94 @@ const ProfilePage = () => {
     }
   }, [session?.user?.omid]);
 
+  useEffect(() => {
+    const fetchRatedAlbums = async () => {
+      try {
+        if (!session?.user?.omid) {
+          console.error("User OMID is missing.");
+          return;
+        }
+
+        // Fetch ratings for the logged-in user
+        const response = await axios.get(
+          `/api/getRatings?userOmid=${session.user.omid}`
+        );
+        const ratings = response.data;
+
+        // Process the ratings data
+        const updatedRatings = await Promise.all(
+          ratings.map(async (rating) => {
+            if (!rating.albumId) {
+              console.warn("Missing albumId for rating:", rating);
+              return null; // Skip ratings without an albumId
+            }
+
+            try {
+              console.log(
+                "Fetching album details for albumId:",
+                rating.albumId
+              );
+              const albumResponse = await axios.get(
+                `/api/spotify/albumDetails`,
+                {
+                  params: { albumId: rating.albumId },
+                }
+              );
+
+              const albumData = albumResponse.data;
+
+              return {
+                albumId: rating.albumId,
+                albumName: albumData.name,
+                albumArtist: albumData.artists
+                  .map((artist) => artist.name)
+                  .join(", "),
+                albumCover: albumData.images[0]?.url,
+                releaseDate: albumData.release_date,
+                averageRating: rating.averageRating,
+                trackRatings: Object.entries(rating.ratings).map(
+                  ([trackId, score]) => ({
+                    trackId,
+                    score,
+                  })
+                ),
+              };
+            } catch (error) {
+              console.error(
+                `Failed to fetch album details for albumId: ${rating.albumId}`,
+                error
+              );
+              return {
+                albumId: rating.albumId,
+                albumName: "Unknown Album",
+                albumArtist: "Unknown Artist",
+                albumCover: "/images/default-album.png",
+                averageRating: rating.averageRating,
+                trackRatings: Object.entries(rating.ratings).map(
+                  ([trackId, score]) => ({
+                    trackId,
+                    score,
+                  })
+                ),
+              };
+            }
+          })
+        );
+
+        setRatedAlbums(updatedRatings.filter((album) => album !== null)); // Filter out null values
+        setFilteredRatedAlbums(
+          updatedRatings.filter((album) => album !== null)
+        );
+      } catch (error) {
+        console.error("Error fetching rated albums:", error);
+      }
+    };
+
+    if (session?.user?.omid) {
+      fetchRatedAlbums();
+    }
+  }, [session?.user?.omid]);
+
   const handlePredefinedSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setPredefinedSearchQuery(query);
@@ -135,6 +230,16 @@ const ProfilePage = () => {
       playlist.name.toLowerCase().includes(query)
     );
     setFilteredUserPlaylists(filtered);
+  };
+
+  const handleAlbumSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setAlbumSearchQuery(query);
+
+    const filtered = ratedAlbums.filter((album) =>
+      album.name.toLowerCase().includes(query)
+    );
+    setFilteredRatedAlbums(filtered);
   };
 
   const handlePlaylistAdded = (newPlaylist) => {
@@ -157,7 +262,10 @@ const ProfilePage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ playlistId: playlistToDelete, userOmid: session.user.omid }),
+        body: JSON.stringify({
+          playlistId: playlistToDelete,
+          userOmid: session.user.omid,
+        }),
       });
 
       if (!response.ok) {
@@ -176,7 +284,9 @@ const ProfilePage = () => {
       toast.success("Playlist deleted successfully!");
     } catch (error) {
       console.error("Error deleting playlist:", error);
-      toast.error("An error occurred while deleting the playlist. Please try again.");
+      toast.error(
+        "An error occurred while deleting the playlist. Please try again."
+      );
     } finally {
       setPlaylistToDelete(null); // Reset the playlist to delete
     }
@@ -265,7 +375,9 @@ const ProfilePage = () => {
         {/* Profile Card */}
         <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg row-span-3 md:row-span-2">
           <CardHeader>
-            <CardTitle><Badge className="w-fit -ml-3 -mt-3 absolute">Profile</Badge></CardTitle>
+            <CardTitle>
+              <Badge className="w-fit -ml-3 -mt-3 absolute">Profile</Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center">
@@ -288,12 +400,17 @@ const ProfilePage = () => {
                   className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
-              <p className="text-2xl font-semibold">
-                {user.name || "N/A"}
+              <p className="text-2xl font-semibold">{user.name || "N/A"}</p>
+
+              <p className="text-gray-600 dark:text-gray-400 text-xs">
+                #
+                <span onClick={() => navigator.clipboard.writeText(user.omid)}>
+                  {user.omid || "N/A"}
+                </span>
               </p>
-              
-              <p className="text-gray-600 dark:text-gray-400 text-xs">#<span onClick={()=> navigator.clipboard.writeText(user.omid)}>{user.omid || "N/A"}</span></p>
-              <p className="text-gray-600 dark:text-gray-300">{user.email || "N/A"}</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                {user.email || "N/A"}
+              </p>
               <p className="text-gray-600">
                 {user?.provider === "google"
                   ? "Logged in via Google"
@@ -303,6 +420,10 @@ const ProfilePage = () => {
                   ? "Logged in via Spotify"
                   : "Logged in via traditional method"}
               </p>
+              {/* Add Country Information */}
+              <p className="text-gray-600 mt-2">
+                Country: <span className="font-bold">{user.country || "Unknown"}</span>
+              </p>
               {/* Album Ratings Counter */}
               <p className="text-gray-600 mt-4">
                 Albums Rated:{" "}
@@ -311,38 +432,108 @@ const ProfilePage = () => {
             </div>
           </CardContent>
         </Card>
-        {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
+        {/* Rated Albums Card */}
+        <Card className="col-span-4 md:col-span-3 shadow-md rounded-lg row-span-3 md:row-span-2">
           <CardHeader>
-          <CardTitle><Badge className="w-fit -ml-3 -mt-3 absolute">Extra Details</Badge></CardTitle>
+            <CardTitle>
+              <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
+                Rated Albums
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProfileDetails />
+            {/* Search Bar */}
+            <div className="mb-4">
+              <Input
+                type="text"
+                placeholder="Search rated albums..."
+                value={albumSearchQuery}
+                onChange={handleAlbumSearch}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+
+            {/* Scrollable Album Grid */}
+            {filteredRatedAlbums.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {filteredRatedAlbums.map((album) => (
+                  <div
+                    key={album.albumId}
+                    className="relative flex items-center justify-between gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                  >
+                    {/* Left Section */}
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={album.albumCover}
+                        alt={album.albumName}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div>
+                        <a
+                          href={`https://open.spotify.com/album/${album.albumId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-lg font-semibold text-blue-500 hover:underline"
+                        >
+                          {album.albumName}
+                        </a>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {album.albumArtist
+                            .split(", ")
+                            .map((artist, index) => (
+                              <span key={index}>
+                                <a
+                                  href={`https://open.spotify.com/search/${encodeURIComponent(
+                                    artist
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:underline"
+                                >
+                                  {artist}
+                                </a>
+                                {index <
+                                  album.albumArtist.split(", ").length - 1 &&
+                                  ", "}
+                              </span>
+                            ))}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Tracks Rated: {album.trackRatings.length}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right Section */}
+                    <div className="flex flex-col items-end gap-2">
+                      <RatingLabel rating={album.averageRating} />
+                      <Button
+                        onClick={() =>
+                          router.push(`/ratings?albumId=${album.albumId}`)
+                        }
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                      >
+                        <FontAwesomeIcon icon={faSearch} />
+                        {/* Add search icon */}
+                        View Ratings
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">
+                No rated albums found.
+              </p>
+            )}
           </CardContent>
         </Card>
-        {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
-          <CardHeader>
-            <CardTitle>Extra Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileDetails />
-          </CardContent>
-        </Card>
-        {/* Profile Details */}
-        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-2">
-          <CardHeader>
-            <CardTitle>Extra Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileDetails />
-          </CardContent>
-        </Card>
+       
         {/* Predefined Playlists Section */}
         <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-4">
           <CardHeader>
             <CardTitle>
-              <Badge className="w-fit ml-2 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">
+              <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
                 Our Playlists
               </Badge>
             </CardTitle>
@@ -399,7 +590,11 @@ const ProfilePage = () => {
         {/* User Playlists Section */}
         <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-2">
           <CardHeader>
-          <CardTitle><Badge className="w-fit ml-1 -mt-6 absolute text-base bg-teal-400 hover:bg-teal-500">Your Playlists</Badge></CardTitle>
+            <CardTitle>
+              <Badge className="w-fit ml-1 -mt-4 absolute text-sm">
+                Your Playlists
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {/* Search Bar and Add Playlist */}
@@ -419,8 +614,8 @@ const ProfilePage = () => {
               </Button>
             </div>
 
-           {/* Scrollable Playlist Grid */}
-           {filteredUserPlaylists.length > 0 ? (
+            {/* Scrollable Playlist Grid */}
+            {filteredUserPlaylists.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
                 {filteredUserPlaylists.map((playlist) => (
                   <div
@@ -497,14 +692,6 @@ const ProfilePage = () => {
           Uploading new profile image...
         </div>
       )}
-      <div className="mt-8 flex justify-center gap-4">
-        <Button variant="outline" className="px-6 py-2 text-lg">
-          Edit Profile
-        </Button>
-        <Button className="px-6 py-2 text-lg bg-red-500 hover:bg-red-600 text-white">
-          Delete Account
-        </Button>
-      </div>
       <ToastContainer /> {/* Add this to render toast notifications */}
       {/* Confirmation Dialog */}
       <ConfirmationDialog

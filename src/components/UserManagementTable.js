@@ -129,6 +129,8 @@ export default function UserManagementTable() {
     overscan: 10,
   });
 
+  console.log(rowVirtualizer.getVirtualItems());
+
   // Define table columns
   const columns = [
     {
@@ -427,36 +429,33 @@ export default function UserManagementTable() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody
-          ref={parentRef}
-          style={{ overflowY: "auto", maxHeight: "400px" }}
-        >
-          {rowVirtualizer?.getVirtualItems()?.length > 0 ? (
-            rowVirtualizer.getVirtualItems().map((virtualRow) => {
+      <div ref={parentRef} className="overflow-y-auto max-h-[400px]">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = table.getRowModel().rows[virtualRow.index];
               return (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
+                    height: "50px", // Ensure consistent row height
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -469,14 +468,10 @@ export default function UserManagementTable() {
                   ))}
                 </TableRow>
               );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length}>No users found.</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog
         open={state.isDialogOpen}

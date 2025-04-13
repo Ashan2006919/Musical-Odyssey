@@ -96,8 +96,8 @@ export default function LoginPage() {
       {/* Top/Left side for the image */}
       <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
         <img
-          src="/images/boy-with-headphones-listening-to.jpg"
-          alt="Register Illustration"
+          src="images/listeningsong-3d.png"
+          alt="Login Illustration"
           className="max-w-full max-h-full object-cover"
         />
       </div>

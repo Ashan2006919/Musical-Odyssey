@@ -41,17 +41,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import UserCountryChart from "@/components/UserCountryChart"; // Import the new chart
+import Testing from "@/app/test/page";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession(); // Get session data
   const router = useRouter();
-
-  // Redirect non-admin users or unauthenticated users
-  useEffect(() => {
-    if (status === "authenticated" && !session?.user?.isAdmin) {
-      router.push("/"); // Redirect to the home page or an unauthorized page
-    }
-  }, [session, status, router]);
 
   const [userStats, setUserStats] = useState([]); // For user growth chart
   const [totalUsers, setTotalUsers] = useState(0); // For total users
@@ -69,6 +64,8 @@ export default function AdminDashboard() {
   );
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [userIdSearchQuery, setUserIdSearchQuery] = useState("");
+  const [countryStats, setCountryStats] = useState([]); // For country distribution chart
+  const [isLoadingCountryStats, setIsLoadingCountryStats] = useState(true);
 
   const chartConfig = {
     desktop: {
@@ -86,9 +83,9 @@ export default function AdminDashboard() {
     const fetchUserStats = async () => {
       try {
         const response = await fetch("/api/admin/userGrowth");
+        if (!response.ok) throw new Error("Failed to fetch user growth data.");
         const data = await response.json();
 
-        // Map the data for the chart
         setUserStats(
           data.map((record) => ({
             date: record.date,
@@ -96,17 +93,56 @@ export default function AdminDashboard() {
           }))
         );
 
-        // Calculate total users
         const total = data.reduce((sum, record) => sum + record.totalUsers, 0);
         setTotalUsers(total);
       } catch (error) {
         console.error("Error fetching user stats:", error);
-        toast.error("Failed to fetch user statistics.");
+        setUserStats([]); // Fallback to an empty array
       }
     };
 
     fetchUserStats();
   }, []);
+
+  useEffect(() => {
+    const fetchCountryStats = async () => {
+      console.log(
+        `[${new Date().toISOString()}] fetchCountryStats function called`
+      );
+      setIsLoadingCountryStats(true);
+      try {
+        const response = await fetch("/api/admin/userCountry");
+        if (!response.ok) throw new Error("Failed to fetch country data.");
+        const data = await response.json();
+        console.log(
+          `[${new Date().toISOString()}] API Response for Country Stats:`,
+          data
+        );
+        setCountryStats(data || []);
+      } catch (error) {
+        console.error(
+          `[${new Date().toISOString()}] Error fetching country stats:`,
+          error
+        );
+        setCountryStats([]); // Fallback to an empty array
+      } finally {
+        setIsLoadingCountryStats(false);
+      }
+    };
+
+    fetchCountryStats();
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated Country Stats State:", countryStats); // Log updated state
+  }, [countryStats]);
+
+  // Debug log to check the state before rendering
+  console.log("Country Stats State:", countryStats);
+
+  useEffect(() => {
+    console.log("Updated Country Stats State:", countryStats);
+  }, [countryStats]); // Logs whenever countryStats changes
 
   // Fetch predefined playlists
   useEffect(() => {
@@ -249,230 +285,236 @@ export default function AdminDashboard() {
   }
 
   return (
-        <div className="grid gap-6 grid-cols-4 auto-rows-auto p-6">
-          {/* Total Users Card */}
-          <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle>Total Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">{totalUsers}</p>
-            </CardContent>
-          </Card>
+    <div className="grid gap-6 grid-cols-4 auto-rows-auto p-6">
+      {/* Total Users Card */}
+      <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle>Total Users</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-4xl font-bold">{totalUsers}</p>
+        </CardContent>
+      </Card>
 
-          {/* User Growth Chart */}
-          <Card className="col-span-4 md:col-span-3 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle>User Growth Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig}>
-                <LineChart
-                  width={600}
-                  height={300}
-                  data={userStats}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+      {/* User Growth Chart */}
+      <Card className="col-span-4 md:col-span-3 shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle>User Growth Over Time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig}>
+            <LineChart
+              width={600}
+              height={300}
+              data={userStats}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} />
+              <YAxis
+                dataKey="users"
+                domain={["auto", "auto"]}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Line
+                type="monotone"
+                dataKey="users"
+                stroke="var(--color-desktop)"
+                strokeWidth={3}
+                dot={{
+                  fill: "var(--color-desktop)",
+                }}
+                activeDot={{
+                  r: 6,
+                }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="col-span-2 shadow-md rounded-lg">
+        {isLoadingCountryStats ? (
+          <p>Loading country stats...</p>
+        ) : (
+          <UserCountryChart data={countryStats || []} />
+        )}
+      </Card>
+      <Card className="col-span-2 shadow-md rounded-lg">
+        <Testing />
+      </Card>
+      {/* Predefined Playlists Section */}
+      <Card className="col-span-4 shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle>Predefined Playlists</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Search Bar and Add Playlist */}
+          <div className="flex items-center gap-4 mb-4">
+            <Input
+              type="text"
+              placeholder="Search predefined playlists..."
+              value={predefinedSearchQuery}
+              onChange={handlePredefinedSearch}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+              variant="outline"
+            >
+              + Add Playlist
+            </Button>
+          </div>
+
+          {/* Scrollable Playlist Grid */}
+          {filteredPredefinedPlaylists.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto overflow-x-hidden">
+              {filteredPredefinedPlaylists.map((playlist) => (
+                <div
+                  key={playlist.id}
+                  className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
                 >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                  <YAxis
-                    dataKey="users"
-                    domain={["auto", "auto"]}
-                    tickLine={false}
-                    axisLine={false}
+                  <img
+                    src={playlist.imageUrl}
+                    alt={playlist.name}
+                    className="h-16 w-16 rounded-lg object-cover"
                   />
-                  <Tooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="users"
-                    stroke="var(--color-desktop)"
-                    strokeWidth={3}
-                    dot={{
-                      fill: "var(--color-desktop)",
-                    }}
-                    activeDot={{
-                      r: 6,
-                    }}
-                  />
-                </LineChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+                  <div>
+                    <a
+                      href={playlist.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-lg font-semibold text-blue-500 hover:underline"
+                    >
+                      {playlist.name}
+                    </a>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {playlist.description}
+                    </p>
+                  </div>
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDeleteClick(playlist.id, "predefined")}
+                    className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
+                  >
+                    <FaTrash /> {/* Trash Icon */}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">
+              No predefined playlists available.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* Predefined Playlists Section */}
-          <Card className="col-span-4 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle>Predefined Playlists</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Search Bar and Add Playlist */}
-              <div className="flex items-center gap-4 mb-4">
-                <Input
-                  type="text"
-                  placeholder="Search predefined playlists..."
-                  value={predefinedSearchQuery}
-                  onChange={handlePredefinedSearch}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+      {/* User-Added Playlists Section */}
+      <Card className="col-span-4 shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle>User-Added Playlists</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Search Fields */}
+          <div className="flex gap-4 mb-4">
+            <Input
+              type="text"
+              placeholder="Search by playlist name..."
+              value={playlistSearchQuery}
+              onChange={(e) => setPlaylistSearchQuery(e.target.value)} // Update query on input change
+              className="flex-grow px-4 py-2 border rounded-lg"
+            />
+            <Input
+              type="text"
+              placeholder="Search by user ID..."
+              value={userIdSearchQuery}
+              onChange={(e) => setUserIdSearchQuery(e.target.value)} // Update query on input change
+              className="flex-grow px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-                <Button
-                  onClick={() => setIsDialogOpen(true)}
-                  className="bg-blue-500 text-white hover:bg-blue-600"
-                  variant="outline"
+          {/* Scrollable Playlist Grid */}
+          {filteredUserAddedPlaylists.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto overflow-x-hidden">
+              {filteredUserAddedPlaylists.map((playlist) => (
+                <div
+                  key={playlist.id}
+                  className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
                 >
-                  + Add Playlist
-                </Button>
-              </div>
-
-              {/* Scrollable Playlist Grid */}
-              {filteredPredefinedPlaylists.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                  {filteredPredefinedPlaylists.map((playlist) => (
-                    <div
-                      key={playlist.id}
-                      className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
+                  <img
+                    src={playlist.imageUrl}
+                    alt={playlist.name}
+                    className="h-16 w-16 rounded-lg object-cover"
+                  />
+                  <div>
+                    <p className="text-lg font-semibold text-blue-500 hover:underline">
+                      {playlist.name}
+                    </p>
+                    <p
+                      className="text-xs text-gray-600 dark:text-gray-400"
+                      onClick={() =>
+                        navigator.clipboard.writeText(playlist.userOmid)
+                      }
+                      title="Click to copy user ID"
                     >
-                      <img
-                        src={playlist.imageUrl}
-                        alt={playlist.name}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-                      <div>
-                        <a
-                          href={playlist.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-lg font-semibold text-blue-500 hover:underline"
-                        >
-                          {playlist.name}
-                        </a>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {playlist.description}
-                        </p>
-                      </div>
-                      {/* Delete Button */}
-                      <button
-                        onClick={() =>
-                          handleDeleteClick(playlist.id, "predefined")
-                        }
-                        className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
-                      >
-                        <FaTrash /> {/* Trash Icon */}
-                      </button>
-                    </div>
-                  ))}
+                      User ID: {playlist.userOmid}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {playlist.description}
+                    </p>
+                  </div>
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDeleteClick(playlist.id, "userAdded")}
+                    className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
+                  >
+                    <FaTrash /> {/* Trash Icon */}
+                  </button>
                 </div>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No predefined playlists available.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">
+              No user-added playlists available.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* User-Added Playlists Section */}
-          <Card className="col-span-4 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle>User-Added Playlists</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Search Fields */}
-              <div className="flex gap-4 mb-4">
-                <Input
-                  type="text"
-                  placeholder="Search by playlist name..."
-                  value={playlistSearchQuery}
-                  onChange={(e) => setPlaylistSearchQuery(e.target.value)} // Update query on input change
-                  className="flex-grow px-4 py-2 border rounded-lg"
-                />
-                <Input
-                  type="text"
-                  placeholder="Search by user ID..."
-                  value={userIdSearchQuery}
-                  onChange={(e) => setUserIdSearchQuery(e.target.value)} // Update query on input change
-                  className="flex-grow px-4 py-2 border rounded-lg"
-                />
-              </div>
+      <Card className="col-span-4 shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* User Management Table */}
+          <UserManagementTable />
+        </CardContent>
+      </Card>
 
-              {/* Scrollable Playlist Grid */}
-              {filteredUserAddedPlaylists.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                  {filteredUserAddedPlaylists.map((playlist) => (
-                    <div
-                      key={playlist.id}
-                      className="flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition relative"
-                    >
-                      <img
-                        src={playlist.imageUrl}
-                        alt={playlist.name}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="text-lg font-semibold text-blue-500 hover:underline">
-                          {playlist.name}
-                        </p>
-                        <p
-                          className="text-xs text-gray-600 dark:text-gray-400"
-                          onClick={() =>
-                            navigator.clipboard.writeText(playlist.userOmid)
-                          }
-                          title="Click to copy user ID"
-                        >
-                          User ID: {playlist.userOmid}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {playlist.description}
-                        </p>
-                      </div>
-                      {/* Delete Button */}
-                      <button
-                        onClick={() =>
-                          handleDeleteClick(playlist.id, "userAdded")
-                        }
-                        className="absolute top-0 -right-3 text-red-500 hover:text-red-700"
-                      >
-                        <FaTrash /> {/* Trash Icon */}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No user-added playlists available.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+      {/* Add Playlist Dialog */}
+      <AdminAddPlaylistDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onPlaylistAdded={handlePlaylistAdded}
+      />
 
-          <Card className="col-span-4 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* User Management Table */}
-              <UserManagementTable />
-            </CardContent>
-          </Card>
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        message="Are you sure you want to delete this playlist? This action cannot be undone."
+      />
 
-          {/* Add Playlist Dialog */}
-          <AdminAddPlaylistDialog
-            isOpen={isDialogOpen}
-            onClose={() => setIsDialogOpen(false)}
-            onPlaylistAdded={handlePlaylistAdded}
-          />
-
-          {/* Confirmation Dialog */}
-          <ConfirmationDialog
-            isOpen={isConfirmDialogOpen}
-            onClose={() => setIsConfirmDialogOpen(false)}
-            onConfirm={handleConfirmDelete}
-            message="Are you sure you want to delete this playlist? This action cannot be undone."
-          />
-
-          <ToastContainer />
-        </div>
+      <ToastContainer />
+    </div>
   );
 }

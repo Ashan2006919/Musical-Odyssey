@@ -6,6 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import SpotifyProvider from "next-auth/providers/spotify";
 import GitHubProvider from "next-auth/providers/github";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios"; // Import axios for API requests
 
 // MongoDB setup
 const uri = process.env.MONGODB_URI;
@@ -28,6 +29,20 @@ function generateOMID() {
     omid += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return omid;
+}
+
+// Function to fetch country using geolocation API
+async function fetchCountry(ip) {
+  try {
+    const response = await axios.get(`http://ip-api.com/json/${ip}`);
+    if (response.data && response.data.country) {
+      return response.data.country;
+    }
+    return "Unknown"; // Default if country cannot be determined
+  } catch (error) {
+    console.error("Error fetching country:", error.message);
+    return "Unknown";
+  }
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -66,6 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user.username,
             image: user.profileImageUrl || "/images/default-profile.png",
             isAdmin: user.isAdmin || false, // Include isAdmin in the user object
+            country: user.country || "Unknown", // Include country in the user object
           };
         } catch (error) {
           console.error("Authorization error:", error.message);
@@ -87,7 +103,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, req }) {
       const db = await connectToDatabase();
       const usersCollection = db.collection("users");
       const userGrowthHistoryCollection = db.collection("userGrowthHistory");
@@ -101,18 +117,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!existingUser) {
           const omid = generateOMID();
 
+          // Extract IP address
+          const isDevelopment = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+          const ip = isDevelopment
+            ? "8.8.8.8" // Mock IP for local development
+            : req?.headers["x-forwarded-for"]?.split(",")[0] ||
+              req?.socket?.remoteAddress ||
+              "127.0.0.1";
+          console.log("Extracted IP Address:", ip); // Debug log
+
+          // Fetch country using the user's IP address
+          const country = await fetchCountry(ip);
+          console.log("Fetched Country:", country); // Debug log
+
           await usersCollection.insertOne({
             email: user.email,
             name: user.name || "Anonymous",
             image: user.image || "/images/default-profile.png",
             omid,
             provider: account.provider,
+            country, // Save country information
             createdAt: new Date(),
             isAdmin: false,
           });
 
           token.omid = omid;
           token.isAdmin = false;
+          token.country = country; // Include country in token
 
           // Track new user growth
           const today = new Date().toISOString().split("T")[0];
@@ -124,6 +155,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         } else {
           token.omid = existingUser.omid;
           token.isAdmin = existingUser.isAdmin || false;
+          token.country = existingUser.country || "Unknown"; // Include country in token
         }
 
         token.id = user.id;
@@ -143,6 +175,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.email = token.email;
       session.user.image = token.image;
       session.user.isAdmin = token.isAdmin;
+      session.user.country = token.country || null; // Include country in session
+      session.user.needsCountry = !token.country; // Flag if country is missing
       return session;
     },
   },

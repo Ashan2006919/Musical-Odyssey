@@ -24,11 +24,11 @@ export default function Home() {
     }, [status, router]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
+    <div className="flex flex-col md:flex-row min-h-screen dark:bg-zinc-950 bg-white">
       {/* Top/Left side for the image */}
       <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
         <img
-          src="/images/cartoon-boy-wearing-headphones-and-listening-to.jpg"
+          src="/images/smartphone-3d.png"
           alt="Login Illustration"
           className="max-w-full max-h-full object-cover"
         />
@@ -47,7 +47,7 @@ export default function Home() {
           </LineShadowText>
         </h1>
 
-        <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-md">
+        <p className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-200 max-w-md">
           Track every album you listen to, review each song, and build a
           timeline of your music journey. Proudly made by an 18-year-old music
           lover from Sri Lanka 🎧🇱🇰.

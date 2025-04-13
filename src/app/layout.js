@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
           content="A platform for exploring and rating albums from Spotify"
         />
       </head>
-      <body className="bg-white dark:bg-black text-black dark:text-white">
+      <body className="bg-white dark:bg-zinc-950 text-black dark:text-white">
         <SessionProvider>
           <ThemeProvider
             attribute="class"
