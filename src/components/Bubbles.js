@@ -24,7 +24,7 @@ const Bubbles = () => {
 
   return (
     <div
-      className="absolute inset-0 overflow-hidden pointer-events-none"
+      className="absolute inset-0 overflow-hidden pointer-eventss-none"
     >
       {/* Existing Small Bubbles */}
       {Array.from({ length: 10 }).map((_, index) => (
