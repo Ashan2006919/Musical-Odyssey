@@ -70,6 +70,16 @@ export default function Header() {
         icon: () => <img src="/icons/maleusericon-3d.png" alt="Profile" />,
         label: "Profile",
       }, // Added Profile
+      { 
+        href: "/settings",
+        icon: () => <img src="/icons/settingsicon-3d.png" alt="Settings" />,
+        label: "Settings",
+      }, // Added Settings
+      {
+        href: "/notifications",
+        icon: () => <img src="/icons/notificationicon-3d.png" alt="Notifications" />,
+        label: "Notifications",
+      }, // Added Notifications
     ],
     contact: {
       social: {

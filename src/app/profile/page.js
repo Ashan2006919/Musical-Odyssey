@@ -355,7 +355,7 @@ const ProfilePage = () => {
 
   return (
     <motion.div
-      className="p-8 md:p-16 flex flex-col items-center justify-center min-h-screen bg-white dark:bg-zinc-950"
+      className="px-8 md:px-16 py-4 md:py-8 flex flex-col items-center justify-center min-h-screen bg-white dark:bg-zinc-950"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
@@ -481,36 +481,44 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Search Bar */}
-              <div className="mb-4 w-full">
-                <Input
-                  type="text"
-                  placeholder="Search rated albums..."
-                  value={albumSearchQuery}
-                  onChange={handleAlbumSearch}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-              </div>
+              {/* Inner Grid for Search Bar and Album Cards */}
+              <div className="grid grid-cols-3 gap-4">
+                {/* Search Bar */}
+                <div className="col-span-3 lg:col-span-3 sm:col-span-2 mb-4">
+                  <Input
+                    type="text"
+                    placeholder="Search rated albums..."
+                    value={albumSearchQuery}
+                    onChange={(e) => {
+                      const query = e.target.value.toLowerCase();
+                      setAlbumSearchQuery(query);
 
-              {/* Scrollable Album Grid */}
-              {filteredRatedAlbums.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
-                  {filteredRatedAlbums.map((album) => (
-                    <motion.div
-                      key={album.albumId}
-                      className="relative flex items-center justify-between gap-4 border rounded-lg shadow-sm hover:shadow-md transition"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <div
+                      const filtered = ratedAlbums.filter((album) =>
+                        album.albumName.toLowerCase().includes(query)
+                      );
+                      setFilteredRatedAlbums(filtered);
+                    }}
+                    className="w-full px-4 py-2 border rounded-lg"
+                  />
+                </div>
+
+                {/* Scrollable Album Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-h-96 overflow-y-auto col-span-3 lg:col-span-3 sm:col-span-2">
+                  {filteredRatedAlbums.length > 0 ? (
+                    filteredRatedAlbums.map((album) => (
+                      <MagicCard
                         key={album.albumId}
-                        className="relative flex items-center justify-between gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                        gradientColor={
+                          theme === "dark" ? "#262626" : "#D9D9D955"
+                        }
+                        className="flex items-center justify-between gap-4 p-6 border rounded-lg shadow-sm hover:shadow-md transition"
                       >
                         {/* Left Section */}
                         <div className="flex items-center gap-4">
                           <img
                             src={album.albumCover}
                             alt={album.albumName}
-                            className="h-16 w-16 rounded-lg object-cover"
+                            className="h-24 w-24 rounded-lg object-cover"
                           />
                           <div>
                             <a
@@ -549,7 +557,7 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Right Section */}
-                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-4">
                           <RatingLabel rating={album.averageRating} />
                           <Button
                             onClick={() =>
@@ -558,19 +566,18 @@ const ProfilePage = () => {
                             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
                           >
                             <FontAwesomeIcon icon={faSearch} />
-                            {/* Add search icon */}
                             View Ratings
                           </Button>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </MagicCard>
+                    ))
+                  ) : (
+                    <p className="text-center text-gray-500 col-span-full">
+                      No rated albums found.
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No rated albums found.
-                </p>
-              )}
+              </div>
             </CardContent>
           </MagicCard>
         </motion.Card>
@@ -736,8 +743,6 @@ const ProfilePage = () => {
         </motion.Card>
 
         {/* Other Cards */}
-
-       
 
         {/* Profile Details */}
         <motion.Card
