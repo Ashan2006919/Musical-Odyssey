@@ -9,19 +9,11 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/nav/app-sidebar";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import ClickSpark from "@/blocks/Animations/ClickSpark/ClickSpark"; // ✅ Import ClickSpark
 import { useEffect } from "react";
 
 export default function RootLayout({ children }) {
@@ -44,21 +36,29 @@ export default function RootLayout({ children }) {
             enableSystem
             disableTransitionOnChange
           >
-            <ProgressBar />
-            {/* Header */}
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <Header title="Test Page" />
-                {/* Main Layout */}
-                <div className="main-layout">
-                  {/* Sidebar and Content */}
-                  <div className="content-layout">{children}</div>
-                </div>
-                {/* Footer */}
-                <Footer />
-              </SidebarInset>
-            </SidebarProvider>
+            <ClickSpark
+              sparkColor="#000000"
+              sparkSize={10}
+              sparkRadius={15}
+              sparkCount={8}
+              duration={400}
+            >
+              <ProgressBar />
+              {/* Header */}
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset>
+                  <Header title="Test Page" />
+                  {/* Main Layout */}
+                  <div className="main-layout">
+                    {/* Sidebar and Content */}
+                    <div className="content-layout">{children}</div>
+                  </div>
+                  {/* Footer */}
+                  <Footer />
+                </SidebarInset>
+              </SidebarProvider>
+            </ClickSpark>
           </ThemeProvider>
         </SessionProvider>
       </body>
