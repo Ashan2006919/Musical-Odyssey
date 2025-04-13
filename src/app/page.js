@@ -43,14 +43,30 @@ export default function Home() {
         transition={{ duration: 2, ease: "easeInOut" }}
       />
 
+      {/* New Small Circle 2 */}
+      <motion.div
+        className="absolute bg-green-500 rounded-full -z-5"
+        style={{
+          width: "200px",
+          height: "200px",
+          bottom: "-60px", // Start off-screen
+          right: "-100px",
+        }}
+        initial={{ x: "100vw", y: 0, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+      />
+
       {/* Top/Left side for the image with background */}
-      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0 relative z-0">
+      <div className="w-full md:w-1/2 flex items-center justify-center md:mb-0 relative z-0">
         {/* Animated Background for the Image */}
         <motion.div
           className="absolute bg-yellow-300 rounded-full -z-10"
           style={{
-            width: "185px", // Start small
-            height: "185px",
+            width: "200px",
+            height: "200px",
+            top: "-50px", // Start off-screen
+            left: "10px",
           }}
           initial={{ x: "-100vw", scale: 0.1, opacity: 0 }}
           animate={{ x: 0, scale: 4, opacity: 1 }} // Grows to 4x size
@@ -70,7 +86,7 @@ export default function Home() {
 
       {/* Bottom/Right side for the login form */}
       <motion.div
-        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 z-0"
+        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 z-0 mb-10"
         initial={{ x: "100vw", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 2, ease: "easeInOut" }}
@@ -84,10 +100,10 @@ export default function Home() {
         >
           Welcome to
           <LineShadowText
-            className="italic text-primary ml-3 whitespace-nowrap"
+            className="italic text-primary whitespace-nowrap"
             shadowColor={shadowColor}
           >
-            Music Odyssey!
+            Musical Odyssey !
           </LineShadowText>
         </motion.h1>
 

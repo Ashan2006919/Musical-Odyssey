@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FaSignInAlt } from "react-icons/fa";
-import { loginUser } from "../api/auth";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
 import {
@@ -21,8 +20,9 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { signIn } from "next-auth/react";
-import CredentialsProvider from "next-auth/providers/credentials";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import Bubbles from "@/components/Bubbles";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -56,26 +56,9 @@ export default function LoginPage() {
         email,
         password,
       });
-      console.log("Login result:", result); // Debugging line
 
-      if (!result) {
-        toast.error("Something went wrong. Please try again.");
-        return;
-      }
-
-      if (result.error) {
-        let errorMessage = "Email or Password invalid!";
-        try {
-          const parsed = JSON.parse(result.error);
-          errorMessage = parsed.message || errorMessage;
-        } catch (e) {
-          // fallback for generic errors like "CredentialsSignin"
-          if (result.error === "CredentialsSignin") {
-            errorMessage = "Invalid email or password.";
-          }
-        }
-
-        toast.error(errorMessage);
+      if (!result || result.error) {
+        toast.error(result?.error || "Invalid credentials. Please try again.");
       } else {
         toast.success("Login successful! Redirecting...");
         setEmail("");
@@ -92,18 +75,80 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
+    <div className="relative flex flex-col md:flex-row min-h-screen dark:bg-zinc-950 bg-white">
+      {/* Animated Bubbles */}
+      <Bubbles />
+
+      {/* New Small Circle 1 */}
+      <motion.div
+        className="absolute bg-orange-500 rounded-full -z-10"
+        style={{
+          width: "200px",
+          height: "200px",
+          top: "-50px",
+          left: "-50px",
+        }}
+        initial={{ x: "-100vw", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+      />
+
+      {/* New Small Circle 2 */}
+      <motion.div
+        className="absolute bg-green-500 rounded-full -z-10"
+        style={{
+          width: "200px",
+          height: "200px",
+          bottom: "-50px",
+          right: "-50px",
+        }}
+        initial={{ x: "100vw", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+      />
+
       {/* Top/Left side for the image */}
-      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
-        <img
+      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0 relative z-0">
+        {/* Animated Background for the Image */}
+        <motion.div
+          className="absolute bg-yellow-300 rounded-full -z-10"
+          style={{
+            width: "200px",
+            height: "200px",
+            top: "-40px", // Start off-screen
+            left: "-20px",
+
+          }}
+          initial={{ x: "-100vw", scale: 0.2, opacity: 0 }}
+          animate={{ x: 0, scale: 4, opacity: 1 }}
+          transition={{ duration: 2, ease: "easeInOut" }}
+        />
+
+        {/* Image */}
+        <motion.img
           src="images/listeningsong-3d.png"
           alt="Login Illustration"
-          className="max-w-full max-h-full object-cover"
+          className="max-w-full max-h-full object-cover relative z-0"
+          initial={{ x: "-100vw", opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 2, ease: "easeInOut" }}
         />
       </div>
+
       {/* Bottom/Right side for the login form */}
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6">
-        <h1 className=" text-5xl font-extrabold leading-tight tracking-tighter text-center">
+      <motion.div
+        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6"
+        initial={{ x: "100vw", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
+      >
+        {/* Animated Heading */}
+        <motion.h1
+          className="text-5xl font-extrabold leading-tight tracking-tighter text-center"
+          initial={{ y: "-100px", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        >
           Welcome to
           <LineShadowText
             className="italic text-primary ml-3 whitespace-nowrap mb-10"
@@ -111,8 +156,16 @@ export default function LoginPage() {
           >
             Music Odyssey!
           </LineShadowText>
-        </h1>
-        <form onSubmit={handleLogin} className="w-full max-w-sm">
+        </motion.h1>
+
+        {/* Animated Form */}
+        <motion.form
+          onSubmit={handleLogin}
+          className="w-full max-w-sm"
+          initial={{ x: "100vw", opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+        >
           <div className="relative mb-8">
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
             <Input
@@ -145,16 +198,32 @@ export default function LoginPage() {
             <FaSignInAlt className="mr-2" />
             {loading ? "Logging in..." : "Login"}
           </Button>
-        </form>
-        <p className="mt-4">- or continue with -</p>
-        <div className="flex justify-center items-center mt-6 space-x-8">
+        </motion.form>
+
+        {/* Animated "or continue with" Text */}
+        <motion.p
+          className="mt-4"
+          initial={{ y: "100px", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 1 }}
+        >
+          - or continue with -
+        </motion.p>
+
+        {/* Animated Social Login Buttons */}
+        <motion.div
+          className="flex justify-center items-center mt-6 space-x-8"
+          initial={{ y: "100px", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 1.2 }}
+        >
           <Button variant="outline" className="w-full py-5">
             <img
               src="/icons/google.png"
               alt="Login with Google"
               className="w-8 h-auto cursor-pointer hover:opacity-80"
               title="Login with Google"
-              onClick={() => signIn("google", { callbackUrl: "/home" })} // Redirect to home after login
+              onClick={() => signIn("google", { callbackUrl: "/home" })}
             />
           </Button>
           <Button variant="outline" className="w-full py-5">
@@ -163,7 +232,7 @@ export default function LoginPage() {
               alt="Login with Spotify"
               className="w-8 h-auto cursor-pointer hover:opacity-80"
               title="Login with Spotify"
-              onClick={() => signIn("spotify", { callbackUrl: "/home" })} // Redirect to home after login
+              onClick={() => signIn("spotify", { callbackUrl: "/home" })}
             />
           </Button>
           <Button variant="outline" className="w-full py-5">
@@ -172,19 +241,26 @@ export default function LoginPage() {
               alt="Register with GitHub"
               className="w-8 h-auto cursor-pointer hover:opacity-80"
               title="Register with GitHub"
-              onClick={() => signIn("github", { callbackUrl: "/home" })} // Redirect to home after login
+              onClick={() => signIn("github", { callbackUrl: "/home" })}
             />
           </Button>
-        </div>
-        <div className="mt-5 text-center">
+        </motion.div>
+
+        {/* Animated Register Link */}
+        <motion.div
+          className="mt-5 text-center"
+          initial={{ y: "100px", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 1.4 }}
+        >
           <Link href="/register">
             <p className="px-6 py-2">
               Don&apos;t have an account?:{" "}
               <span className="text-blue-500 underline"> Register </span>
             </p>
           </Link>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       <ToastContainer /> {/* Add ToastContainer to render notifications */}
     </div>
   );
