@@ -14,6 +14,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { motion } from "framer-motion"; // Import Framer Motion
 
 const fakeChartData = [
   { month: "January", desktop: 186 },
@@ -33,7 +34,12 @@ const chartConfig = {
 
 export function AlbumSkeletonRandom() {
   return (
-    <div className="relative w-[450px] sm:w-[400px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out">
+    <motion.div
+      className="relative w-[450px] sm:w-[400px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out"
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Skeleton className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm" />
       <div className="absolute inset-0 bg-black/10 rounded-xl before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 before:bg-gradient-to-t before:to-transparent"></div>
       <div className="relative flex items-center gap-x-6 p-6 flex-nowrap">
@@ -47,13 +53,18 @@ export function AlbumSkeletonRandom() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export function AlbumSkeletonSearch() {
   return (
-    <div className="relative w-[675px] h-[275px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out pt-10">
+    <motion.div
+      className="relative w-[675px] h-[275px] overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out pt-10"
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Skeleton className="absolute inset-0 w-full h-full bg-cover bg-center blur-sm" />
       <div className="absolute inset-0 bg-black/10 rounded-xl before:absolute before:bottom-0 before:left-0 before:w-full before:h-1/3 before:bg-gradient-to-t before:to-transparent"></div>
       <div className="relative flex items-center gap-x-6 p-6 flex-nowrap">
@@ -67,7 +78,7 @@ export function AlbumSkeletonSearch() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

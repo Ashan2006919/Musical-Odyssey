@@ -33,6 +33,7 @@ import {
 import { useSession } from "next-auth/react";
 import Modal from "@/components/Modal"; // Import the Modal component
 import { MagicCard } from "@/components/magicui/magic-card"; // Import MagicCard component
+import { motion } from "framer-motion"; // Import Framer Motion for animations
 
 export default function Home() {
   const router = useRouter();
@@ -274,74 +275,83 @@ export default function Home() {
   }, [selectedGenres]); // Depend on selectedGenres to trigger the effect when genres change
 
   return (
-    <div className="flex flex-col items-center mt-10 min-h-screen px-6 bg-white dark:bg-zinc-950">
-     
-      {/* Title */}
-      <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center">
-        Welcome to
-        <LineShadowText
-          className="italic text-primary ml-3 whitespace-nowrap"
-          shadowColor={shadowColor}
-        >
-          Musical Odyssey!
-        </LineShadowText>
-      </h1>
-      {/* Search Input */}
-      <div className="flex items-center justify-center gap-4 mt-8 w-full max-w-lg">
-        <Input
-          type="text"
-          placeholder="Enter album name..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="p-4 text-lg border rounded-md shadow-lg focus:ring-2 focus:ring-primary focus:outline-none w-full max-w-md h-11 transition-all duration-300 ease-in-out"
-        />
+    <div className="relative flex flex-col items-center mt-10 min-h-screen px-6 bg-white dark:bg-zinc-950">
+    {/* Animated Title */}
+    <motion.h1
+      className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center"
+      initial={{ y: "-100px", opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 1.5, ease: "easeInOut" }}
+    >
+      Welcome to
+      <LineShadowText
+        className="italic text-primary ml-3 whitespace-nowrap"
+        shadowColor={shadowColor}
+      >
+        Musical Odyssey!
+      </LineShadowText>
+    </motion.h1>
 
-        <AnimatedSubscribeButton
-          className="w-36 p-4 text-lg rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
-          onClick={handleSearch}
-          disabled={loadingSearch}
-        >
-          <span className="group inline-flex items-center">
-            <span>{loadingSearch ? "Searching..." : "Search"}</span>
-          </span>
-          <span>
-            {!loadingSearch && (
-              <ChevronRightIcon className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            )}
-          </span>
-        </AnimatedSubscribeButton>
-      </div>
-      {/* Genre Filter */}
-      <div className="mb-6 mt-8 w-full max-w-lg">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              color="primary"
-              className="p-2 text-lg border rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11 absolute left-8"
+    {/* Animated Search Input, Search Button, and Filter Button */}
+    <motion.div
+      className="flex items-center justify-center gap-4 mt-8 w-full max-w-lg"
+      initial={{ y: "-100px", opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+    >
+      {/* Filter Button */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            color="primary"
+            className="p-2 text-lg border rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
+          >
+            <FaFilter className="mr-2" />
+            Filter
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48 mt-2 border border-orange-500">
+          <DropdownMenuLabel className="bg-orange-500 rounded-t-md text-white">
+            Select Genre
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {["Pop", "Rock", "Jazz", "Hip-Hop"].map((genre) => (
+            <DropdownMenuCheckboxItem
+              key={genre}
+              checked={selectedGenres.includes(genre)}
+              onCheckedChange={(checked) => handleGenreChange(genre, checked)}
+              className="text-gray-800 hover:bg-gray-100"
             >
-              <FaFilter className="mr-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 absolute -left-6 mt-2 border border-orange-500">
-            <DropdownMenuLabel className="bg-orange-500 rounded-t-md text-white">
-              Select Genre
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {Object.keys(albumsByGenre).map((genre) => (
-              <DropdownMenuCheckboxItem
-                key={genre}
-                checked={selectedGenres.includes(genre)}
-                onCheckedChange={(checked) => handleGenreChange(genre, checked)}
-                className="text-gray-800 hover:bg-gray-100"
-              >
-                {genre}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              {genre}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Search Input */}
+      <Input
+        type="text"
+        placeholder="Enter album name..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="p-4 text-lg border rounded-md shadow-lg focus:ring-2 focus:ring-primary focus:outline-none w-full max-w-md h-11 transition-all duration-300 ease-in-out"
+      />
+
+      {/* Search Button */}
+      <AnimatedSubscribeButton
+        className="w-36 p-4 text-lg rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
+        onClick={handleSearch}
+      >
+        <span className="group inline-flex items-center">
+          <span>Search</span>
+        </span>
+        <span>
+          <ChevronRightIcon className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </span>
+      </AnimatedSubscribeButton>
+    </motion.div>
+
       {/* Error Message */}
       {error && <p className="text-red-500 text-center">{error}</p>}
       {/* Random Albums Grid */}
@@ -354,10 +364,13 @@ export default function Home() {
       ) : (
         randomAlbums.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pb-10 pt-5">
-            {randomAlbums.map((album) => (
-              <Card
+            {randomAlbums.map((album, index) => (
+              <motion.div
                 key={album.id}
                 className="relative w-full overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out dark:border-gray-500 border"
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }} // Staggered animation
               >
                 {/* Background Cover (Blurred, More Visible) */}
                 <div
@@ -417,7 +430,7 @@ export default function Home() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </motion.div>
             ))}
           </div>
         )
@@ -425,10 +438,13 @@ export default function Home() {
       {/* Albums by Selected Genres Grid */}
       {albumsBySelectedGenres.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pb-10 pt-5">
-          {albumsBySelectedGenres.map((album) => (
-            <Card
+          {albumsBySelectedGenres.map((album, index) => (
+            <motion.div
               key={album.id}
               className="relative w-full overflow-hidden shadow-md rounded-md transition-all duration-300 ease-in-out"
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }} // Staggered animation
             >
               {/* Background Cover (Blurred, More Visible) */}
               <div
@@ -488,7 +504,7 @@ export default function Home() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </motion.div>
           ))}
         </div>
       )}

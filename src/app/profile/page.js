@@ -1,34 +1,28 @@
 "use client";
 
+import { motion } from "framer-motion"; // Import Framer Motion
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import ProfileDetails from "@/components/profile-components/profile-details";
-import { fetchPlaylistsData } from "@/utils/playlistData"; // Import shared playlist logic
 import { Input } from "@/components/ui/input";
-import AddPlaylistDialog from "@/components/AddPlaylistDialog"; // Import the new component
+import AddPlaylistDialog from "@/components/AddPlaylistDialog";
 import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
+import "react-toastify/dist/ReactToastify.css";
 import { FaTrash } from "react-icons/fa";
-import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the confirmation dialog
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/nav/app-sidebar"; // Import the sidebar component
-import axios from "axios";
-import RatingLabel from "@/components/RatingLabel";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
+import RatingLabel from "@/components/RatingLabel"; // Import the RatingLabel component
+import { MagicCard } from "@/components/magicui/magic-card";
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -360,9 +354,19 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="shadow-lg rounded-lg p-8">
-      {/* Title */}
-      <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-10">
+    <motion.div
+      className="p-8 md:p-16 flex flex-col items-center justify-center min-h-screen bg-white dark:bg-zinc-950"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
+      {/* Animated Title */}
+      <motion.h1
+        className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-10"
+        initial={{ y: "-100px", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
+      >
         Your
         <LineShadowText
           className="italic text-primary ml-3 whitespace-nowrap"
@@ -370,337 +374,435 @@ const ProfilePage = () => {
         >
           Dashboard!
         </LineShadowText>
-      </h1>
-      <div className="grid gap-6 grid-cols-4 auto-rows-auto">
+      </motion.h1>
+
+      {/* Animated Cards Grid */}
+      <motion.div
+        className="grid gap-6 grid-cols-4 auto-rows-auto"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.5 }}
+      >
         {/* Profile Card */}
-        <Card className="col-span-4 md:col-span-1 shadow-md rounded-lg row-span-3 md:row-span-2">
-          <CardHeader>
-            <CardTitle>
-              <Badge className="w-fit -ml-3 -mt-3 absolute">Profile</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center">
-              <div className="relative mb-4">
-                <Image
-                  src={
-                    profileImage
-                      ? URL.createObjectURL(profileImage)
-                      : user.image || "/images/default-profile.png"
-                  }
-                  alt="Profile"
-                  width={100}
-                  height={100}
-                  className="rounded-full border-2 border-orange-500 shadow-md"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+        <motion.Card
+          className="col-span-4 md:col-span-1 shadow-md rounded-lg row-span-3 md:row-span-2"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>
+                <Badge className="w-fit -ml-3 -mt-3 absolute">Profile</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center">
+                <motion.div
+                  className="relative mb-4"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
+                  <Image
+                    src={
+                      profileImage
+                        ? URL.createObjectURL(profileImage)
+                        : user.image || "/images/default-profile.png"
+                    }
+                    alt="Profile"
+                    width={100}
+                    height={100}
+                    className="rounded-full border-2 border-orange-500 shadow-md"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </motion.div>
+                <p className="text-2xl font-semibold">{user.name || "N/A"}</p>
+
+                <p className="text-gray-600 dark:text-gray-400 text-xs">
+                  #
+                  <span
+                    onClick={() => navigator.clipboard.writeText(user.omid)}
+                  >
+                    {user.omid || "N/A"}
+                  </span>
+                </p>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {user.email || "N/A"}
+                </p>
+                <p className="text-gray-600">
+                  {user?.provider === "google"
+                    ? "Logged in via Google"
+                    : user?.provider === "github"
+                    ? "Logged in via GitHub"
+                    : user?.provider === "spotify"
+                    ? "Logged in via Spotify"
+                    : "Logged in via traditional method"}
+                </p>
+                {/* Add Country Information */}
+                <p className="text-gray-600 mt-2">
+                  Country:{" "}
+                  <span className="font-bold">{user.country || "Unknown"}</span>
+                </p>
+                {/* Album Ratings Counter */}
+                <p className="text-gray-600 mt-4">
+                  Albums Rated:{" "}
+                  <span className="font-bold">{albumRatingsCount}</span>
+                </p>
+              </div>
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
+
+        {/* Rated Albums Card */}
+        <motion.Card
+          className="col-span-4 md:col-span-3 shadow-md rounded-lg row-span-3 md:row-span-2"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>
+                <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
+                  Rated Albums
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Search Bar */}
+              <div className="mb-4 w-full">
+                <Input
+                  type="text"
+                  placeholder="Search rated albums..."
+                  value={albumSearchQuery}
+                  onChange={handleAlbumSearch}
+                  className="w-full px-4 py-2 border rounded-lg"
                 />
               </div>
-              <p className="text-2xl font-semibold">{user.name || "N/A"}</p>
 
-              <p className="text-gray-600 dark:text-gray-400 text-xs">
-                #
-                <span onClick={() => navigator.clipboard.writeText(user.omid)}>
-                  {user.omid || "N/A"}
-                </span>
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                {user.email || "N/A"}
-              </p>
-              <p className="text-gray-600">
-                {user?.provider === "google"
-                  ? "Logged in via Google"
-                  : user?.provider === "github"
-                  ? "Logged in via GitHub"
-                  : user?.provider === "spotify"
-                  ? "Logged in via Spotify"
-                  : "Logged in via traditional method"}
-              </p>
-              {/* Add Country Information */}
-              <p className="text-gray-600 mt-2">
-                Country: <span className="font-bold">{user.country || "Unknown"}</span>
-              </p>
-              {/* Album Ratings Counter */}
-              <p className="text-gray-600 mt-4">
-                Albums Rated:{" "}
-                <span className="font-bold">{albumRatingsCount}</span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Rated Albums Card */}
-        <Card className="col-span-4 md:col-span-3 shadow-md rounded-lg row-span-3 md:row-span-2">
-          <CardHeader>
-            <CardTitle>
-              <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
-                Rated Albums
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Search Bar */}
-            <div className="mb-4">
-              <Input
-                type="text"
-                placeholder="Search rated albums..."
-                value={albumSearchQuery}
-                onChange={handleAlbumSearch}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
+              {/* Scrollable Album Grid */}
+              {filteredRatedAlbums.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
+                  {filteredRatedAlbums.map((album) => (
+                    <motion.div
+                      key={album.albumId}
+                      className="relative flex items-center justify-between gap-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <div
+                        key={album.albumId}
+                        className="relative flex items-center justify-between gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                      >
+                        {/* Left Section */}
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={album.albumCover}
+                            alt={album.albumName}
+                            className="h-16 w-16 rounded-lg object-cover"
+                          />
+                          <div>
+                            <a
+                              href={`https://open.spotify.com/album/${album.albumId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-lg font-semibold text-blue-500 hover:underline"
+                            >
+                              {album.albumName}
+                            </a>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {album.albumArtist
+                                .split(", ")
+                                .map((artist, index) => (
+                                  <span key={index}>
+                                    <a
+                                      href={`https://open.spotify.com/search/${encodeURIComponent(
+                                        artist
+                                      )}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      {artist}
+                                    </a>
+                                    {index <
+                                      album.albumArtist.split(", ").length -
+                                        1 && ", "}
+                                  </span>
+                                ))}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Tracks Rated: {album.trackRatings.length}
+                            </p>
+                          </div>
+                        </div>
 
-            {/* Scrollable Album Grid */}
-            {filteredRatedAlbums.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                {filteredRatedAlbums.map((album) => (
-                  <div
-                    key={album.albumId}
-                    className="relative flex items-center justify-between gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
-                  >
-                    {/* Left Section */}
-                    <div className="flex items-center gap-4">
+                        {/* Right Section */}
+                        <div className="flex flex-col items-end gap-2">
+                          <RatingLabel rating={album.averageRating} />
+                          <Button
+                            onClick={() =>
+                              router.push(`/ratings?albumId=${album.albumId}`)
+                            }
+                            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                          >
+                            <FontAwesomeIcon icon={faSearch} />
+                            {/* Add search icon */}
+                            View Ratings
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No rated albums found.
+                </p>
+              )}
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
+
+        {/* Predefined Playlists Section */}
+        <motion.Card
+          className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>
+                <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
+                  Our Playlists
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Animated Search Bar */}
+              <motion.div
+                className="mb-4"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.7 }}
+              >
+                <Input
+                  type="text"
+                  placeholder="Search predefined playlists..."
+                  value={predefinedSearchQuery}
+                  onChange={handlePredefinedSearch}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+              </motion.div>
+
+              {/* Animated Playlist Grid */}
+              <motion.div
+                className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.9 }}
+              >
+                {filteredPredefinedPlaylists.length > 0 ? (
+                  filteredPredefinedPlaylists.map((playlist) => (
+                    <motion.div
+                      key={playlist.id}
+                      className="relative flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                      whileHover={{ scale: 1.05 }}
+                    >
                       <img
-                        src={album.albumCover}
-                        alt={album.albumName}
+                        src={playlist.imageUrl}
+                        alt={playlist.name}
                         className="h-16 w-16 rounded-lg object-cover"
                       />
                       <div>
                         <a
-                          href={`https://open.spotify.com/album/${album.albumId}`}
+                          href={playlist.href}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-lg font-semibold text-blue-500 hover:underline"
                         >
-                          {album.albumName}
+                          {playlist.name}
                         </a>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {album.albumArtist
-                            .split(", ")
-                            .map((artist, index) => (
-                              <span key={index}>
-                                <a
-                                  href={`https://open.spotify.com/search/${encodeURIComponent(
-                                    artist
-                                  )}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-500 hover:underline"
-                                >
-                                  {artist}
-                                </a>
-                                {index <
-                                  album.albumArtist.split(", ").length - 1 &&
-                                  ", "}
-                              </span>
-                            ))}
+                          {playlist.description}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Tracks Rated: {album.trackRatings.length}
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500">
+                    No predefined playlists available.
+                  </p>
+                )}
+              </motion.div>
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
+
+        {/* User Playlists Section */}
+        <motion.Card
+          className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>
+                <Badge className="w-fit ml-1 -mt-4 absolute text-sm">
+                  Your Playlists
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Search Bar and Add Playlist */}
+              {/* Animated Search Bar */}
+              <motion.div
+                className="mb-4 grid grid-cols-4 gap-4"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.7 }}
+              >
+                <Input
+                  type="text"
+                  placeholder="Search your playlists..."
+                  value={userSearchQuery}
+                  onChange={handleUserSearch}
+                  className="flex-grow col-span-3"
+                />
+
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-blue-500 text-white"
+                >
+                  + Add
+                </Button>
+              </motion.div>
+
+              {/* Scrollable Playlist Grid */}
+              {filteredUserPlaylists.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden">
+                  {filteredUserPlaylists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      className="relative flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                    >
+                      <img
+                        src={playlist.imageUrl}
+                        alt={playlist.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div>
+                        <a
+                          href={playlist.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-lg font-semibold text-blue-500 hover:underline"
+                        >
+                          {playlist.name}
+                        </a>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {playlist.description}
                         </p>
                       </div>
                     </div>
-
-                    {/* Right Section */}
-                    <div className="flex flex-col items-end gap-2">
-                      <RatingLabel rating={album.averageRating} />
-                      <Button
-                        onClick={() =>
-                          router.push(`/ratings?albumId=${album.albumId}`)
-                        }
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                      >
-                        <FontAwesomeIcon icon={faSearch} />
-                        {/* Add search icon */}
-                        View Ratings
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                No rated albums found.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-       
-        {/* Predefined Playlists Section */}
-        <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-4">
-          <CardHeader>
-            <CardTitle>
-              <Badge className="w-fit ml-2 -mt-4 absolute text-sm">
-                Our Playlists
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Search Bar */}
-            <div className="mb-4">
-              <Input
-                type="text"
-                placeholder="Search predefined playlists..."
-                value={predefinedSearchQuery}
-                onChange={handlePredefinedSearch}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-
-            {/* Scrollable Playlist Grid */}
-            {filteredPredefinedPlaylists.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-                {filteredPredefinedPlaylists.map((playlist) => (
-                  <div
-                    key={playlist.id}
-                    className="relative flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
-                  >
-                    <img
-                      src={playlist.imageUrl}
-                      alt={playlist.name}
-                      className="h-16 w-16 rounded-lg object-cover"
-                    />
-                    <div>
-                      <a
-                        href={playlist.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg font-semibold text-blue-500 hover:underline"
-                      >
-                        {playlist.name}
-                      </a>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {playlist.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                No predefined playlists available.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* User Playlists Section */}
-        <Card className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg p-2">
-          <CardHeader>
-            <CardTitle>
-              <Badge className="w-fit ml-1 -mt-4 absolute text-sm">
-                Your Playlists
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Search Bar and Add Playlist */}
-            <div className="flex items-center gap-4 mb-4">
-              <Input
-                type="text"
-                placeholder="Search your playlists..."
-                value={userSearchQuery}
-                onChange={handleUserSearch}
-                className="flex-grow"
-              />
-              <Button
-                onClick={() => setIsDialogOpen(true)}
-                className="bg-blue-500 text-white"
-              >
-                + Add
-              </Button>
-            </div>
-
-            {/* Scrollable Playlist Grid */}
-            {filteredUserPlaylists.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-                {filteredUserPlaylists.map((playlist) => (
-                  <div
-                    key={playlist.id}
-                    className="relative flex items-center gap-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition"
-                  >
-                    <img
-                      src={playlist.imageUrl}
-                      alt={playlist.name}
-                      className="h-16 w-16 rounded-lg object-cover"
-                    />
-                    <div>
-                      <a
-                        href={playlist.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg font-semibold text-blue-500 hover:underline"
-                      >
-                        {playlist.name}
-                      </a>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {playlist.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                No playlists available. Add some to get started!
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No playlists available. Add some to get started!
+                </p>
+              )}
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
 
         {/* Other Cards */}
 
-        {/* Calendar Card */}
-        <Card className="col-span-3 md:col-span-1 shadow-md rounded-lg p-4 row-span-3 md:row-span-1">
-          <CardHeader>
-            <CardTitle>Calendar</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center items-center">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border"
-            />
-          </CardContent>
-        </Card>
+       
 
         {/* Profile Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Extra Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileDetails />
-          </CardContent>
-        </Card>
-      </div>
-      {/* Add Playlist Dialog */}
-      <AddPlaylistDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onPlaylistAdded={handlePlaylistAdded}
-        userOmid={session.user.omid}
-        onToastMessage={handleToastMessage} // Pass the toast message handler
-        userPlaylists={userPlaylists} // Pass the user playlists
-      />
-      {uploading && (
-        <div className="text-center mt-4 text-orange-500 font-semibold">
-          Uploading new profile image...
-        </div>
-      )}
-      <ToastContainer /> {/* Add this to render toast notifications */}
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={isConfirmDialogOpen}
-        onClose={() => setIsConfirmDialogOpen(false)}
-        onConfirm={handleConfirmDelete}
-        message="Are you sure you want to delete this playlist? This action cannot be undone."
-      />
-    </div>
+        <motion.Card
+          className="shadow-md rounded-lg"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>Extra Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProfileDetails />
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
+
+        {/* Profile Details */}
+        <motion.Card
+          className="shadow-md rounded-lg"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <MagicCard
+            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
+            className="p-4"
+          >
+            <CardHeader>
+              <CardTitle>Extra Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProfileDetails />
+            </CardContent>
+          </MagicCard>
+        </motion.Card>
+
+        {/* Add Playlist Dialog */}
+        <AddPlaylistDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onPlaylistAdded={handlePlaylistAdded}
+          userOmid={session.user.omid}
+          onToastMessage={handleToastMessage} // Pass the toast message handler
+          userPlaylists={userPlaylists} // Pass the user playlists
+        />
+        {uploading && (
+          <div className="text-center mt-4 text-orange-500 font-semibold">
+            Uploading new profile image...
+          </div>
+        )}
+        <ToastContainer />
+        {/* Confirmation Dialog */}
+        <ConfirmationDialog
+          isOpen={isConfirmDialogOpen}
+          onClose={() => setIsConfirmDialogOpen(false)}
+          onConfirm={handleConfirmDelete}
+          message="Are you sure you want to delete this playlist? This action cannot be undone."
+        />
+      </motion.div>
+    </motion.div>
   );
 };
 

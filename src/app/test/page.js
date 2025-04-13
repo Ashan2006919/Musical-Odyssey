@@ -1,75 +1,522 @@
-"use client"
-
-import { Pie, PieChart } from "recharts"
-
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart"
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { motion } from "framer-motion"; // Import Framer Motion
+
+const timezones = [
+  {
+    label: "Americas",
+    timezones: [
+      { value: "America/New_York", label: "(GMT-5) New York" },
+      { value: "America/Los_Angeles", label: "(GMT-8) Los Angeles" },
+      { value: "America/Chicago", label: "(GMT-6) Chicago" },
+      { value: "America/Toronto", label: "(GMT-5) Toronto" },
+      { value: "America/Vancouver", label: "(GMT-8) Vancouver" },
+      { value: "America/Sao_Paulo", label: "(GMT-3) São Paulo" },
+    ],
+  },
+  {
+    label: "Europe",
+    timezones: [
+      { value: "Europe/London", label: "(GMT+0) London" },
+      { value: "Europe/Paris", label: "(GMT+1) Paris" },
+      { value: "Europe/Berlin", label: "(GMT+1) Berlin" },
+      { value: "Europe/Rome", label: "(GMT+1) Rome" },
+      { value: "Europe/Madrid", label: "(GMT+1) Madrid" },
+      { value: "Europe/Amsterdam", label: "(GMT+1) Amsterdam" },
+    ],
+  },
+  {
+    label: "Asia/Pacific",
+    timezones: [
+      { value: "Asia/Tokyo", label: "(GMT+9) Tokyo" },
+      { value: "Asia/Shanghai", label: "(GMT+8) Shanghai" },
+      { value: "Asia/Singapore", label: "(GMT+8) Singapore" },
+      { value: "Asia/Dubai", label: "(GMT+4) Dubai" },
+      { value: "Australia/Sydney", label: "(GMT+11) Sydney" },
+      { value: "Asia/Seoul", label: "(GMT+9) Seoul" },
+    ],
+  },
 ]
 
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
+const loginHistory = [
+  {
+    date: "2024-01-01",
+    ip: "192.168.1.1",
+    location: "New York, USA",
   },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
+  {
+    date: "2023-12-29",
+    ip: "172.16.0.100",
+    location: "London, UK",
   },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
+  {
+    date: "2023-12-28",
+    ip: "10.0.0.50",
+    location: "Toronto, Canada",
   },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
+  {
+    date: "2023-12-25",
+    ip: "192.168.2.15",
+    location: "Sydney, Australia",
   },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
+]
+
+const activeSessions = [
+  {
+    device: "MacBook Pro",
+    browser: "Chrome",
+    os: "macOS",
   },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
+  {
+    device: "iPhone",
+    browser: "Safari",
+    os: "iOS",
   },
+  {
+    device: "iPad",
+    browser: "Safari",
+    os: "iOS",
+  },
+  {
+    device: "Android Phone",
+    browser: "Chrome",
+    os: "Android",
+  },
+]
+
+export default function SettingsPage() {
+  return (
+    <motion.div
+      className="@container/page flex flex-1 flex-col gap-8 p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
+      <Tabs defaultValue="account" className="gap-6">
+        <motion.div
+          data-slot="dashboard-header"
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+        >
+          <TabsList>
+            <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          </TabsList>
+        </motion.div>
+        <TabsContent value="account" className="grid gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>
+                  Make changes to your account here.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form id="form-account" className="@container">
+                  <FieldGroup>
+                    <Field>
+                      <Label htmlFor="name">Name</Label>
+                      <FieldControl>
+                        <Input
+                          id="name"
+                          placeholder="First and last name"
+                          required
+                        />
+                      </FieldControl>
+                      <FieldDescription>
+                        This is your public display name.
+                      </FieldDescription>
+                    </Field>
+                    <Field>
+                      <Label htmlFor="email">Email</Label>
+                      <FieldControl>
+                        <Input
+                          id="email"
+                          placeholder="you@example.com"
+                          required
+                        />
+                      </FieldControl>
+                    </Field>
+                    <Field>
+                      <Label htmlFor="timezone">Timezone</Label>
+                      <FieldControl>
+                        <Select>
+                          <SelectTrigger id="timezone">
+                            <SelectValue placeholder="Select a timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timezones.map((timezone) => (
+                              <SelectGroup key={timezone.label}>
+                                <SelectLabel>{timezone.label}</SelectLabel>
+                                {timezone.timezones.map((time) => (
+                                  <SelectItem
+                                    key={time.value}
+                                    value={time.value}
+                                  >
+                                    {time.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FieldControl>
+                    </Field>
+                  </FieldGroup>
+                </form>
+              </CardContent>
+              <CardFooter className="border-t">
+                <Button type="submit" form="form-account" variant="secondary">
+                  Save changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+                <CardDescription>
+                  Manage how you receive notifications.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form id="form-notifications" className="@container">
+                  <FieldGroup>
+                    <Field>
+                      <Label htmlFor="channels">Notification Channels</Label>
+                      <FieldControl className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="notification-email" />
+                          <Label htmlFor="notification-email">Email</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="notification-sms" />
+                          <Label htmlFor="notification-sms">SMS</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="notification-push" />
+                          <Label htmlFor="notification-push">Push</Label>
+                        </div>
+                      </FieldControl>
+                      <FieldDescription>
+                        Choose how you want to receive notifications.
+                      </FieldDescription>
+                    </Field>
+                    <Field>
+                      <Label htmlFor="types">Notification Types</Label>
+                      <FieldControl className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="notification-account" />
+                          <Label htmlFor="notification-account">
+                            Account Activity
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="notification-security"
+                            defaultChecked
+                            disabled
+                          />
+                          <Label htmlFor="notification-security">
+                            Security Alerts
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="notification-marketing" />
+                          <Label htmlFor="notification-marketing">
+                            Marketing & Promotions
+                          </Label>
+                        </div>
+                      </FieldControl>
+                      <FieldDescription>
+                        Choose how you want to receive notifications.
+                      </FieldDescription>
+                    </Field>
+                  </FieldGroup>
+                </form>
+              </CardContent>
+              <CardFooter className="border-t">
+                <Button
+                  type="submit"
+                  form="form-notifications"
+                  variant="secondary"
+                >
+                  Save changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        </TabsContent>
+        <TabsContent
+          value="security"
+          className="grid gap-6 @3xl/page:grid-cols-2"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+          >
+            <Card className="@3xl/page:col-span-2">
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>
+                  Make changes to your security settings here.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="@container">
+                <form id="form-security">
+                  <FieldGroup>
+                    <Field>
+                      <Label htmlFor="current-password">Current Password</Label>
+                      <FieldControl>
+                        <Input
+                          id="current-password"
+                          placeholder="Current password"
+                          required
+                        />
+                      </FieldControl>
+                      <FieldDescription>
+                        This is your current password.
+                      </FieldDescription>
+                    </Field>
+                    <Field>
+                      <Label htmlFor="new-password">New Password</Label>
+                      <FieldControl>
+                        <Input
+                          id="new-password"
+                          placeholder="New password"
+                          required
+                        />
+                      </FieldControl>
+                    </Field>
+                    <Field>
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <FieldControl>
+                        <Input
+                          id="confirm-password"
+                          placeholder="Confirm password"
+                        />
+                      </FieldControl>
+                    </Field>
+                    <Field>
+                      <FieldControl>
+                        <Switch
+                          id="enable-two-factor-auth"
+                          className="self-start"
+                        />
+                      </FieldControl>
+                      <Label htmlFor="enable-two-factor-auth">
+                        Enable two-factor authentication
+                      </Label>
+                      <FieldDescription>
+                        This will add an extra layer of security to your account.
+                        Make this an extra long description to test the layout.
+                      </FieldDescription>
+                    </Field>
+                  </FieldGroup>
+                </form>
+              </CardContent>
+              <CardFooter className="border-t">
+                <Button type="submit" form="form-security" variant="secondary">
+                  Save changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Login History</CardTitle>
+              <CardDescription>
+                Recent login activities on your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="hidden @md/page:table-cell">
+                      IP
+                    </TableHead>
+                    <TableHead>Location</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loginHistory.map((login) => (
+                    <TableRow key={login.date}>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {new Date(login.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                          <span className="flex @md/page:hidden">
+                            {login.ip}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden @md/page:table-cell">
+                        {login.ip}
+                      </TableCell>
+                      <TableCell>{login.location}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Sessions</CardTitle>
+              <CardDescription>
+                Current active sessions on your account.
+              </CardDescription>
+              <div> {/* Replace CardAction with a div or another wrapper */}
+                <Button variant="outline" size="sm">
+                  <span className="hidden @md/card-header:block">
+                    Manage Sessions
+                  </span>
+                  <span className="block @md/card-header:hidden">Manage</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Device</TableHead>
+                    <TableHead>Browser</TableHead>
+                    <TableHead>OS</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeSessions.map((session) => (
+                    <TableRow key={session.device}>
+                      <TableCell>{session.device}</TableCell>
+                      <TableCell>{session.browser}</TableCell>
+                      <TableCell>{session.os}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </motion.div>
+  )
 }
 
-export default function Testing() {
+function FieldGroup({ children }) {
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Legend</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[300px]"
-        >
-          <PieChart>
-            <Pie data={chartData} dataKey="visitors" />
-            <ChartLegend
-              content={<ChartLegendContent nameKey="browser" />}
-              className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-            />
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <div
+      data-slot="field-group"
+      className="@container/field-group flex max-w-4xl min-w-0 flex-col gap-8 @3xl:gap-6"
+    >
+      {children}
+    </div>
+  )
+}
+
+function Field({ children, className, ...props }) {
+  return (
+    <div
+      data-slot="field"
+      className={cn(
+        "grid auto-rows-min items-start gap-3 *:data-[slot=label]:col-start-1 *:data-[slot=label]:row-start-1 @3xl/field-group:grid-cols-2 @3xl/field-group:gap-6",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
+
+function FieldControl({
+  children,
+  className,
+  ...props
+}) {
+  return (
+    <div
+      data-slot="field-control"
+      className={cn(
+        "@3xl/field-group:col-start-2 @3xl/field-group:row-span-2 @3xl/field-group:row-start-1 @3xl/field-group:self-start",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
+
+function FieldDescription({
+  children,
+  className,
+  ...props
+}) {
+  return (
+    <p
+      data-slot="field-description"
+      className={cn(
+        "text-muted-foreground text-sm @3xl/field-group:col-start-1 @3xl/field-group:row-start-1 @3xl/field-group:translate-y-6",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </p>
   )
 }

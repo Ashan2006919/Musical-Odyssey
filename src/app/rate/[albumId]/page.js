@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion"; // Import Framer Motion
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation"; // Correct import
 import axios from "axios";
@@ -500,8 +501,13 @@ const RateAlbum = () => {
   return (
     <div className="relative min-h-screen">
       <div className="max-w-7xl mx-auto py-10 px-6">
-        {/* Title text should always be displayed */}
-        <h1 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-5">
+        {/* Animated Title */}
+        <motion.h1
+          className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-5"
+          initial={{ y: "-100px", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        >
           Let's Rate an
           <LineShadowText
             className="italic text-primary ml-3 whitespace-nowrap"
@@ -509,17 +515,29 @@ const RateAlbum = () => {
           >
             Album!
           </LineShadowText>
-        </h1>
+        </motion.h1>
 
         {/* Conditional rendering for loading state */}
         {loading ? (
-          <div className="space-y-10">
+          <motion.div
+            className="space-y-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
             <AlbumInfoSkeleton />
             <AvailableOnSkeleton />
             <TrackListSkeleton />
-          </div>
+          </motion.div>
         ) : error ? (
-          <p className="text-center text-red-500 mt-10">{error}</p>
+          <motion.p
+            className="text-center text-red-500 mt-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            {error}
+          </motion.p>
         ) : (
           <>
             {/* Render the rest of the content when data is loaded */}
@@ -527,7 +545,12 @@ const RateAlbum = () => {
               className="cursor-pointer flex-col whitespace-nowrap"
               gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10">
+              <motion.div
+                className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeInOut" }}
+              >
                 <div className="flex justify-center items-center">
                   <img
                     src={albumData.images[0].url}
@@ -584,14 +607,27 @@ const RateAlbum = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </MagicCard>
 
             <div className="my-10">
-              <h2 className="text-2xl font-semibold text-center mb-4 text-black">
+              {/* Animated "Available on" Text */}
+              <motion.h2
+                className="text-2xl font-semibold text-center mb-4 text-black"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeInOut" }}
+              >
                 Available on
-              </h2>
-              <div className="flex flex-wrap gap-4 justify-center">
+              </motion.h2>
+
+              {/* Animated Buttons for Platforms */}
+              <motion.div
+                className="flex flex-wrap gap-4 justify-center"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeInOut", delay: 0.3 }}
+              >
                 <Button
                   asChild
                   className="flex-1 px-5 py-2 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-md text-white rounded-lg"
@@ -646,13 +682,18 @@ const RateAlbum = () => {
                     <FaSoundcloud className="text-3xl" /> Listen on SoundCloud
                   </a>
                 </Button>
-              </div>
+              </motion.div>
             </div>
             <MagicCard
               className="cursor-pointer flex-col whitespace-nowrap py-2"
               gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
             >
-              <div className="overflow-x-auto shadow-md rounded-lg">
+              <motion.div
+                className="overflow-x-auto shadow-md rounded-lg"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeInOut", delay: 0.5 }}
+              >
                 <table className="min-w-full table-auto">
                   <thead>
                     <tr>
@@ -750,18 +791,23 @@ const RateAlbum = () => {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </motion.div>
             </MagicCard>
 
-            <div className="flex justify-center my-10">
+            <motion.div
+              className="flex justify-center my-10"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeInOut", delay: 0.7 }}
+            >
               <Button
                 type="submit"
                 onClick={handleSubmit}
-                className="px-6 py-3 text-xl flex items-center justify-center gap-4 transition-all h-10 w-1/4"
+                className="py-3 text-xl flex items-center justify-center gap-4 transition-all h-10 w-1/4"
               >
                 <FaCheckCircle /> Submit
               </Button>
-            </div>
+            </motion.div>
 
             {averageRating && (
               <div className="text-center mt-5 text-xl font-semibold">
