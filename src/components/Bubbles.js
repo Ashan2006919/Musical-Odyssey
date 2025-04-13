@@ -23,7 +23,10 @@ const Bubbles = () => {
   const colors = ["#FF5733", "#33C1FF", "#FFC300", "#DAF7A6", "#C70039"];
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none"
+    >
+      {/* Existing Small Bubbles */}
       {Array.from({ length: 10 }).map((_, index) => (
         <motion.div
           key={index}
