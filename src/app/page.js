@@ -29,7 +29,7 @@ export default function Home() {
       {/* Animated Bubbles */}
       <Bubbles />
 
-      {/* New Small Circle (Replaces the big blue one) */}
+      {/* New Small Circle */}
       <motion.div
         className="absolute bg-purple-500 rounded-full -z-5"
         style={{

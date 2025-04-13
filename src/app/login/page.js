@@ -81,31 +81,18 @@ export default function LoginPage() {
 
       {/* New Small Circle 1 */}
       <motion.div
-        className="absolute bg-orange-500 rounded-full -z-10"
+        className="absolute bg-orange-500 rounded-full z-5"
         style={{
           width: "200px",
           height: "200px",
-          top: "-50px",
-          left: "-50px",
-        }}
-        initial={{ x: "-100vw", opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 2, ease: "easeInOut" }}
-      />
-
-      {/* New Small Circle 2 */}
-      <motion.div
-        className="absolute bg-green-500 rounded-full -z-10"
-        style={{
-          width: "200px",
-          height: "200px",
-          bottom: "-50px",
-          right: "-50px",
+          top: "-85px",
+          right: "-90px",
         }}
         initial={{ x: "100vw", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 2, ease: "easeInOut" }}
       />
+
 
       {/* Top/Left side for the image */}
       <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0 relative z-0">
@@ -116,7 +103,7 @@ export default function LoginPage() {
             width: "200px",
             height: "200px",
             top: "-40px", // Start off-screen
-            left: "-20px",
+            left: "-10px",
 
           }}
           initial={{ x: "-100vw", scale: 0.2, opacity: 0 }}
@@ -137,7 +124,7 @@ export default function LoginPage() {
 
       {/* Bottom/Right side for the login form */}
       <motion.div
-        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6"
+        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 z-20"
         initial={{ x: "100vw", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 1.5, ease: "easeInOut" }}

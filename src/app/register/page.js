@@ -1,5 +1,3 @@
-// src/app/register/page.js
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,6 +13,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import Bubbles from "@/components/Bubbles";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -111,19 +111,61 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
+    <div className="relative flex flex-col md:flex-row min-h-screen dark:bg-zinc-950 bg-white">
+      {/* Animated Bubbles */}
+      <Bubbles />
+
+      {/* New Small Circle 1 */}
+      <motion.div
+        className="absolute bg-cyan-400 rounded-full z-5"
+        style={{
+          width: "200px",
+          height: "200px",
+          top: "-85px",
+          right: "-90px",
+        }}
+        initial={{ x: "100vw", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+      />
+
       {/* Top/Left side for the image */}
-      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
-        <img
-          src="/images/musicvideo-3d.png"
-          alt="Login Illustration"
-          className="max-w-full max-h-full object-cover"
+      <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0 relative z-0">
+        {/* Animated Background for the Image */}
+        <motion.div
+          className="absolute bg-gradient-to-r from-blue-700 to-purple-500 rounded-full -z-10"
+          style={{
+            width: "200px",
+            height: "200px",
+            top: "10px", // Start off-screen
+            left: "0px",
+
+          }}
+          initial={{ x: "-100vw", scale: 0.2, opacity: 0 }}
+          animate={{ x: 0, scale: 4, opacity: 1 }}
+          transition={{ duration: 2, ease: "easeInOut" }}
+        />
+
+        {/* Image */}
+        <motion.img
+          src="images/musicvideo-3d.png"
+          alt="Register Illustration"
+          className="max-w-full max-h-full object-cover relative z-0"
+          initial={{ x: "-100vw", opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 2, ease: "easeInOut" }}
         />
       </div>
-      {/* Bottom/Right side for the registration form */}
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6">
+
+      {/* Bottom/Right side for the register form */}
+      <motion.div
+        className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 z-20 sm:mt-10"
+        initial={{ x: "100vw", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
+      >
         <h1 className="text-7xl font-extrabold leading-tight tracking-tighter text-center">
-          Join
+
           <LineShadowText
             className="italic text-primary ml-3 whitespace-nowrap mb-10"
             shadowColor={shadowColor}
@@ -256,7 +298,7 @@ export default function RegisterPage() {
             <p className="px-6 py-1 mb-3">Already have an account?: <span className="text-blue-500 underline"> Login </span></p>
           </Link>
         </div>
-      </div>
+      </motion.div>
       {/* Show the login pop-up if needed */}
       {showLoginPopup && (
         <MagicLoginPopup onClose={() => setShowLoginPopup(false)} />
