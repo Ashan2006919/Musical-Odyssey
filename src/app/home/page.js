@@ -275,7 +275,7 @@ export default function Home() {
   }, [selectedGenres]); // Depend on selectedGenres to trigger the effect when genres change
 
   return (
-    <div className="relative flex flex-col items-center mt-10 min-h-screen px-6 bg-white dark:bg-zinc-950">
+    <div className="relative flex flex-col items-center mt-10 min-h-screen px-6">
     {/* Animated Title */}
     <motion.h1
       className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center"

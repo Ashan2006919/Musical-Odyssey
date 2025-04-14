@@ -25,7 +25,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "i.scdn.co",
-      }
+      },
+      {
+        protocol: "https",
+        hostname: "assets.aceternity.com",
+      },
     ],
   },
   webpack: (config, { isServer }) => {

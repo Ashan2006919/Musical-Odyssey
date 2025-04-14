@@ -23,6 +23,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import RatingLabel from "@/components/RatingLabel"; // Import the RatingLabel component
 import { MagicCard } from "@/components/magicui/magic-card";
+import TiltedCard from "@/blocks/Components/TiltedCard/TiltedCard";
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -355,7 +356,7 @@ const ProfilePage = () => {
 
   return (
     <motion.div
-      className="px-8 md:px-16 py-4 md:py-8 flex flex-col items-center justify-center min-h-screen bg-white dark:bg-zinc-950"
+      className="px-8 md:px-16 py-4 md:py-8 flex flex-col items-center justify-center min-h-screen"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
