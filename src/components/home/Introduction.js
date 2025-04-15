@@ -77,8 +77,9 @@ export default function Introduction() {
             initial={{ x: "-100vw", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
+            
           >
-            <Iphone15Pro className="size-full" />
+            <Iphone15Pro className="size-full" src={`/images/Musical-Odyssey-intro-mobile.jpeg`}/>
           </motion.div>
           <motion.div
             className="absolute left-5 items-center justify-center h-full"
@@ -86,7 +87,7 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
           >
-            <Safari url="magicui.design" className="size-full" />
+            <Safari url="magicui.design" className="size-full" imageSrc={`/images/Musical-Odyssey-intro.jpeg`} />
           </motion.div>
         </div>
 
