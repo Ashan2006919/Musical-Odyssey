@@ -7,15 +7,7 @@ import ProgressBar from "../components/ProgressBar"; // ✅ Import the new compo
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppSidebar } from "@/components/nav/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import ClickSpark from "@/blocks/Animations/ClickSpark/ClickSpark"; // ✅ Import ClickSpark
-import { useEffect } from "react";
-import Waves from "@/blocks/Backgrounds/Waves/Waves";
 
 export default function RootLayout({ children }) {
   return (
@@ -30,32 +22,6 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="bg-white dark:bg-zinc-950 text-black dark:text-white">
-        <Waves
-          lineColor="#e2e8f0"
-          waveSpeedX={0.02}
-          waveSpeedY={0.01}
-          waveAmpX={40}
-          waveAmpY={20}
-          friction={0.9}
-          tension={0.01}
-          maxCursorMove={120}
-          xGap={12}
-          yGap={36}
-          className="block dark:hidden"
-        />
-        <Waves
-          lineColor="#1f2937"
-          waveSpeedX={0.02}
-          waveSpeedY={0.01}
-          waveAmpX={40}
-          waveAmpY={20}
-          friction={0.9}
-          tension={0.01}
-          maxCursorMove={120}
-          xGap={12}
-          yGap={36}
-          className="hidden dark:block"
-        />
 
         <SessionProvider>
           <ThemeProvider

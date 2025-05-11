@@ -89,7 +89,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("No user found with this email.");
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
         if (!isPasswordValid) {
           throw new Error("Invalid password.");
         }
@@ -134,7 +137,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const omid = generateOMID();
 
           // Extract IP address
-          const isDevelopment = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+          const isDevelopment =
+            process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
           const ip = isDevelopment
             ? "8.8.8.8" // Mock IP for local development
             : req?.headers["x-forwarded-for"]?.split(",")[0] ||
@@ -195,6 +199,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.country = token.country || null; // Include country in session
       session.user.needsCountry = !token.country; // Flag if country is missing
       session.user.verified = token.verified || false; // Include verified status in session
+      session.user.provider = token.provider || "Unknown"; // Include provider in session
       return session;
     },
   },

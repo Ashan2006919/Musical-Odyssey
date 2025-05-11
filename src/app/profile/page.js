@@ -19,11 +19,29 @@ import "react-toastify/dist/ReactToastify.css";
 import { FaTrash } from "react-icons/fa";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSearch,
+  faArrowUp,
+  faArrowDown,
+} from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import RatingLabel from "@/components/RatingLabel"; // Import the RatingLabel component
 import { MagicCard } from "@/components/magicui/magic-card";
 import TiltedCard from "@/blocks/Components/TiltedCard/TiltedCard";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { FaGoogle, FaGithub, FaSpotify, FaUser } from "react-icons/fa"; // Import provider icons
+import Flags from "react-world-flags"; // Import country flags
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+
+countries.registerLocale(enLocale); // Register the English locale
 
 const ProfilePage = () => {
   const { data: session, status, update } = useSession();
@@ -44,6 +62,8 @@ const ProfilePage = () => {
   const [ratedAlbums, setRatedAlbums] = useState([]); // State for rated albums
   const [albumSearchQuery, setAlbumSearchQuery] = useState(""); // State for album search query
   const [filteredRatedAlbums, setFilteredRatedAlbums] = useState([]); // State for filtered albums
+  const [sortOption, setSortOption] = useState(""); // State for sorting option
+  const [sortDirection, setSortDirection] = useState("asc"); // State for sorting direction
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   const router = useRouter();
@@ -54,6 +74,32 @@ const ProfilePage = () => {
     } else if (type === "error") {
       toast.error(message); // Display the error message
     }
+  };
+
+  const handleSortChange = (option) => {
+    const direction =
+      sortOption === option && sortDirection === "asc" ? "desc" : "asc";
+    setSortOption(option);
+    setSortDirection(direction);
+
+    const sortedAlbums = [...filteredRatedAlbums].sort((a, b) => {
+      if (option === "rating") {
+        return direction === "asc"
+          ? a.averageRating - b.averageRating
+          : b.averageRating - a.averageRating;
+      } else if (option === "releaseDate") {
+        return direction === "asc"
+          ? new Date(a.releaseDate) - new Date(b.releaseDate)
+          : new Date(b.releaseDate) - new Date(a.releaseDate);
+      } else if (option === "albumName") {
+        return direction === "asc"
+          ? a.albumName.localeCompare(b.albumName)
+          : b.albumName.localeCompare(a.albumName);
+      }
+      return 0;
+    });
+
+    setFilteredRatedAlbums(sortedAlbums);
   };
 
   // Redirect to login if not authenticated
@@ -133,6 +179,8 @@ const ProfilePage = () => {
         );
         const ratings = response.data;
 
+        console.log("Fetched ratings:", ratings); // Debug: Log the fetched ratings
+
         // Process the ratings data
         const updatedRatings = await Promise.all(
           ratings.map(async (rating) => {
@@ -155,6 +203,16 @@ const ProfilePage = () => {
 
               const albumData = albumResponse.data;
 
+              // Debug: Log the album details and averageRating
+              console.log(
+                "Album details fetched:",
+                albumData,
+                "Average Rating:",
+                rating.averageRating,
+                "Type:",
+                typeof rating.averageRating
+              );
+
               return {
                 albumId: rating.albumId,
                 albumName: albumData.name,
@@ -163,7 +221,7 @@ const ProfilePage = () => {
                   .join(", "),
                 albumCover: albumData.images[0]?.url,
                 releaseDate: albumData.release_date,
-                averageRating: rating.averageRating,
+                averageRating: parseFloat(rating.averageRating), // Ensure it's a number
                 trackRatings: Object.entries(rating.ratings).map(
                   ([trackId, score]) => ({
                     trackId,
@@ -176,12 +234,23 @@ const ProfilePage = () => {
                 `Failed to fetch album details for albumId: ${rating.albumId}`,
                 error
               );
+
+              // Debug: Log fallback data
+              console.log(
+                "Using fallback data for albumId:",
+                rating.albumId,
+                "Average Rating:",
+                rating.averageRating,
+                "Type:",
+                typeof rating.averageRating
+              );
+
               return {
                 albumId: rating.albumId,
                 albumName: "Unknown Album",
                 albumArtist: "Unknown Artist",
                 albumCover: "/images/default-album.png",
-                averageRating: rating.averageRating,
+                averageRating: parseFloat(rating.averageRating), // Ensure it's a number
                 trackRatings: Object.entries(rating.ratings).map(
                   ([trackId, score]) => ({
                     trackId,
@@ -192,6 +261,8 @@ const ProfilePage = () => {
             }
           })
         );
+
+        console.log("Processed rated albums:", updatedRatings); // Debug: Log the processed albums
 
         setRatedAlbums(updatedRatings.filter((album) => album !== null)); // Filter out null values
         setFilteredRatedAlbums(
@@ -439,20 +510,55 @@ const ProfilePage = () => {
                 <p className="text-gray-600 dark:text-gray-300">
                   {user.email || "N/A"}
                 </p>
-                <p className="text-gray-600">
-                  {user?.provider === "google"
-                    ? "Logged in via Google"
-                    : user?.provider === "github"
-                    ? "Logged in via GitHub"
-                    : user?.provider === "spotify"
-                    ? "Logged in via Spotify"
-                    : "Logged in via traditional method"}
+
+                {/* Logged in via */}
+                <p className="text-gray-600 flex items-center">
+                  Logged in via:{" "}
+                  <span className="font-bold flex items-center ml-2">
+                    {user?.provider === "google" && (
+                      <>
+                        Google <FaGoogle className="text-red-500 mr-1" />
+                      </>
+                    )}
+                    {user?.provider === "github" && (
+                      <>
+                        GitHub <FaGithub className="text-gray-800 mr-1" />
+                      </>
+                    )}
+                    {user?.provider === "spotify" && (
+                      <>
+                        Spotify <FaSpotify className="text-green-500 mr-1" />
+                      </>
+                    )}
+                    {!user?.provider && (
+                      <>
+                        Username/Password{" "}
+                        <FaUser className="text-gray-500 mr-1" />
+                      </>
+                    )}
+                  </span>
                 </p>
-                {/* Add Country Information */}
-                <p className="text-gray-600 mt-2">
+
+                {/* Country Information */}
+                <p className="text-gray-600 mt-2 flex items-center">
                   Country:{" "}
-                  <span className="font-bold">{user.country || "Unknown"}</span>
+                  <span className="font-bold flex items-center ml-2">
+                    {user.country ? (
+                      <>
+                        {user.country}
+                        <Flags
+                          code={
+                            countries.getAlpha2Code(user.country, "en") || "US"
+                          } // Convert country name to ISO code
+                          className="w-5 h-5 mr-2"
+                        />
+                      </>
+                    ) : (
+                      "Unknown"
+                    )}
+                  </span>
                 </p>
+
                 {/* Album Ratings Counter */}
                 <p className="text-gray-600 mt-4">
                   Albums Rated:{" "}
@@ -482,10 +588,10 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Inner Grid for Search Bar and Album Cards */}
+              {/* Inner Grid for Search Bar and Sorting */}
               <div className="grid grid-cols-3 gap-4">
-                {/* Search Bar */}
-                <div className="col-span-3 lg:col-span-3 sm:col-span-2 mb-4">
+                {/* Search Bar and Sorting Button */}
+                <div className="col-span-3 lg:col-span-3 sm:col-span-2 mb-4 flex justify-between items-center">
                   <Input
                     type="text"
                     placeholder="Search rated albums..."
@@ -501,10 +607,72 @@ const ProfilePage = () => {
                     }}
                     className="w-full px-4 py-2 border rounded-lg"
                   />
+
+                  {/* Sorting Button */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">Sort By</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Sort Albums</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleSortChange("rating")}
+                      >
+                        Rating{" "}
+                        <FontAwesomeIcon
+                          icon={
+                            sortOption === "rating" && sortDirection === "asc"
+                              ? faArrowUp
+                              : faArrowDown
+                          }
+                          className="ml-2"
+                        />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleSortChange("releaseDate")}
+                      >
+                        Release Date{" "}
+                        <FontAwesomeIcon
+                          icon={
+                            sortOption === "releaseDate" &&
+                            sortDirection === "asc"
+                              ? faArrowUp
+                              : faArrowDown
+                          }
+                          className="ml-2"
+                        />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleSortChange("albumName")}
+                      >
+                        Album Name{" "}
+                        <FontAwesomeIcon
+                          icon={
+                            sortOption === "albumName" &&
+                            sortDirection === "asc"
+                              ? faArrowUp
+                              : faArrowDown
+                          }
+                          className="ml-2"
+                        />
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortOption(""); // Reset sorting
+                          setSortDirection("asc"); // Reset sort direction
+                          setFilteredRatedAlbums(ratedAlbums); // Reset to original order
+                        }}
+                      >
+                        Clear Sorting
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Scrollable Album Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-h-96 overflow-y-auto col-span-3 lg:col-span-3 sm:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-h-96 overflow-y-auto col-span-3 lg:col-span-3 sm:col-span-2 pr-4">
                   {filteredRatedAlbums.length > 0 ? (
                     filteredRatedAlbums.map((album) => (
                       <MagicCard
@@ -551,14 +719,19 @@ const ProfilePage = () => {
                                   </span>
                                 ))}
                             </p>
+                            {/* Display the rating given for the album */}
                             <p className="text-sm text-gray-500">
-                              Tracks Rated: {album.trackRatings.length}
+                              Your Rating:{" "}
+                              {typeof album.averageRating === "number"
+                                ? Math.round(album.averageRating)
+                                : "N/A"}{" "}
+                              / 10
                             </p>
                           </div>
                         </div>
 
                         {/* Right Section */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-6 mt-6">
                           <RatingLabel rating={album.averageRating} />
                           <Button
                             onClick={() =>
@@ -620,7 +793,7 @@ const ProfilePage = () => {
 
               {/* Animated Playlist Grid */}
               <motion.div
-                className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden"
+                className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden pr-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, delay: 0.9 }}
@@ -707,7 +880,7 @@ const ProfilePage = () => {
 
               {/* Scrollable Playlist Grid */}
               {filteredUserPlaylists.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto overflow-x-hidden pr-4">
                   {filteredUserPlaylists.map((playlist) => (
                     <div
                       key={playlist.id}
@@ -744,46 +917,6 @@ const ProfilePage = () => {
         </motion.Card>
 
         {/* Other Cards */}
-
-        {/* Profile Details */}
-        <motion.Card
-          className="shadow-md rounded-lg"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <MagicCard
-            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
-            className="p-4"
-          >
-            <CardHeader>
-              <CardTitle>Extra Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProfileDetails />
-            </CardContent>
-          </MagicCard>
-        </motion.Card>
-
-        {/* Profile Details */}
-        <motion.Card
-          className="shadow-md rounded-lg"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <MagicCard
-            gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
-            className="p-4"
-          >
-            <CardHeader>
-              <CardTitle>Extra Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProfileDetails />
-            </CardContent>
-          </MagicCard>
-        </motion.Card>
 
         {/* Add Playlist Dialog */}
         <AddPlaylistDialog

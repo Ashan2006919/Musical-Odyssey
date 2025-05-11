@@ -70,21 +70,21 @@ export default function Header() {
         icon: () => <img src="/icons/maleusericon-3d.png" alt="Profile" />,
         label: "Profile",
       }, // Added Profile
-      { 
+      {
         href: "/settings",
         icon: () => <img src="/icons/settingsicon-3d.png" alt="Settings" />,
         label: "Settings",
       }, // Added Settings
       {
         href: "/artist-ranking",
-        icon: () => <img src="/icons/rankingicon-3d.png" alt="Artist Ranking" />,
+        icon: () => (
+          <img src="/icons/rankingicon-3d.png" alt="Artist Ranking" />
+        ),
         label: "Artist Ranking",
       }, // Added Artist Ranking
     ],
     contact: {
-      social: {
-
-      },
+      social: {},
     },
   };
 
@@ -107,14 +107,12 @@ export default function Header() {
   }
 
   return (
-    <div
-      className="fixed bottom-0 left-0 w-full z-50 bg-transparent shadow-lg py-6"
-    >
+    <div className="fixed bottom-0 left-0 w-full z-50 bg-transparent shadow-lg py-6">
       <div className="flex flex-col items-center justify-center">
         <TooltipProvider>
-          <Dock iconMagnification={80} iconDistance={300} className="dark:border-gray-400">
+          <Dock direction="middle">
             {DATA.navbar.map((item) => (
-              <DockIcon key={item.label} size={40}>
+              <DockIcon key={item.label}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
@@ -122,50 +120,48 @@ export default function Header() {
                       aria-label={item.label}
                       className={cn(
                         buttonVariants({ variant: "ghost", size: "icon" }),
-                        "size-16 rounded-full text-blue-500"
+                        "size-12 rounded-full"
                       )}
                     >
-                      <item.icon className="size-6" />
+                      <item.icon className="size-4" />
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-lg font-semibold">{item.label}</p>
+                    <p>{item.label}</p>
                   </TooltipContent>
                 </Tooltip>
               </DockIcon>
             ))}
-            <Separator orientation="vertical" className="h-full dark:bg-gray-400" />
+            <Separator orientation="vertical" className="h-full" />
             {Object.entries(DATA.contact.social).map(([name, social]) => (
-              <DockIcon key={name} size={70}>
+              <DockIcon key={name}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
                       href={social.url}
                       aria-label={social.name}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className={cn(
                         buttonVariants({ variant: "ghost", size: "icon" }),
-                        "size-16 rounded-full text-green-500"
+                        "size-12 rounded-full"
                       )}
                     >
-                      <social.icon className="size-6" />
+                      <social.icon className="size-4" />
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-lg font-semibold">{name}</p>
+                    <p>{name}</p>
                   </TooltipContent>
                 </Tooltip>
               </DockIcon>
             ))}
-            <Separator orientation="vertical" className="h-full py-2 dark:bg-gray-400" />
+            <Separator orientation="vertical" className="h-full py-2" />
             <DockIcon>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ModeToggle className="rounded-full size-16" />
+                  <ModeToggle className="rounded-full" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-lg font-semibold">Theme</p>
+                  <p>Theme</p>
                 </TooltipContent>
               </Tooltip>
             </DockIcon>

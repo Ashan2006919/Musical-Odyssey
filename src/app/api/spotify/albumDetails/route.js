@@ -37,7 +37,6 @@ export async function GET(req) {
     }
 
     const accessToken = await getAccessToken();
-    console.log("Access Token:", accessToken);
 
     const albumResponse = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
