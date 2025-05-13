@@ -648,7 +648,7 @@ const RatingsPage = () => {
                     </div>
                   ))}
               </div>
-              <DialogFooter className="bg-white mt-4">
+              <DialogFooter className="mt-4">
                 {" "}
                 {/* Ensure footer stays at the bottom */}
                 <Button
