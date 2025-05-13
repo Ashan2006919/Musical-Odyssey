@@ -10,7 +10,7 @@ const platforms = [
 
 export default function SupportedPlatforms() {
   return (
-    <div className="relative overflow-hidden w-full bg-gray-50 py-6">
+    <div className="relative overflow-hidden w-full bg-gray-50 dark:bg-black py-6">
       <div className="flex items-center animate-scroll whitespace-nowrap">
         {platforms.map((platform, index) => (
           <a

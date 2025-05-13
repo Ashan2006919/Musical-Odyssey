@@ -30,6 +30,8 @@ import { Dock, DockIcon } from "@/components/magicui/dock";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { LogOut } from "lucide-react"; // Import the logout icon
+import { signOut } from "next-auth/react"; // Import the signOut function
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -162,6 +164,24 @@ export default function Header() {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Theme</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+            <DockIcon>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => signOut()}
+                    className={cn(
+                      buttonVariants({ variant: "ghost", size: "icon" }),
+                      "size-12 rounded-full"
+                    )}
+                  >
+                    <LogOut className="size-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Log Out</p>
                 </TooltipContent>
               </Tooltip>
             </DockIcon>
