@@ -12,16 +12,12 @@ import { useRef } from "react";
 import { signIn } from "next-auth/react";
 import Iphone15Pro from "@/components/magicui/iphone-15-pro";
 import { Safari } from "@/components/magicui/safari";
+import { ModeToggle } from "@/components/NighMode";
 
 export default function Introduction() {
-  // Ref for the section to scroll to
-  const introSectionRef = useRef(null);
   // Get the current theme to set shadow color
   const { resolvedTheme } = useTheme();
   const shadowColor = resolvedTheme === "dark" ? "white" : "black";
-  const handleScroll = () => {
-    introSectionRef.current.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -54,7 +50,11 @@ export default function Introduction() {
           }
         >
           <Image
-            src={`/images/Musical Odyssey Homepage - Light Mode (Desktop).png`}
+            src={
+              resolvedTheme === "dark"
+                ? "/images/Musical Odyssey Homepage - Dark Mode (Desktop).png"
+                : "/images/Musical Odyssey Homepage - Light Mode (Desktop).png"
+            }
             alt="Musical Odyssey Homepage"
             height={720}
             width={1400}
@@ -71,14 +71,22 @@ export default function Introduction() {
       <div className="flex flex-col md:flex-row">
         {/* Introduction and Login/Register Section */}
         {/* Overlayed Iphone15ProDemo and SafariDemo */}
-        <div className="w-full md:w-1/2 flex items-center justify-center md:mb-0 relative z-0">
+        <div className="w-full md:w-1/2 flex items-center justify-center md:mb-0 relative z-0 ml-5">
           <motion.div
             className="absolute items-center justify-center -right-10 z-10 h-5/6"
             initial={{ x: "-100vw", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
           >
-            <Iphone15Pro className="size-full" src="/images/Musical Odyssey Homepage - Light Mode (Desktop).png" />
+            {/* Iphone15Pro Image */}
+            <Iphone15Pro
+              className="size-full"
+              src={
+                resolvedTheme === "dark"
+                  ? "/images/Musical Odyssey Homepage - Dark Mode (Mobile).jpeg"
+                  : "/images/Musical Odyssey Homepage - Light Mode (Mobile).jpeg"
+              }
+            />
           </motion.div>
           <motion.div
             className="absolute left-5 items-center justify-center h-full"
@@ -86,7 +94,16 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
           >
-            <Safari url="magicui.design" className="size-full" imageSrc="/images/Musical Odyssey Homepage - Light Mode (Desktop).png" />
+            {/* Safari Image */}
+            <Safari
+              url="magicui.design"
+              className="size-full"
+              imageSrc={
+                resolvedTheme === "dark"
+                  ? "/images/Musical Odyssey Homepage - Dark Mode (Desktop).png"
+                  : "/images/Musical Odyssey Homepage - Light Mode (Desktop).png"
+              }
+            />
           </motion.div>
         </div>
 
@@ -112,7 +129,6 @@ export default function Introduction() {
               Musical Odyssey !
             </LineShadowText>
           </motion.h1>
-
           {/* Animated Description */}
           <motion.p
             className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-200 max-w-md"
@@ -189,6 +205,7 @@ export default function Introduction() {
                 onClick={() => signIn("github", { callbackUrl: "/home" })}
               />
             </Button>
+            <ModeToggle className="rounded-full z-50" />
           </motion.div>
         </motion.div>
       </div>

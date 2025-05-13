@@ -16,14 +16,20 @@ export default function HeroScrollHome() {
               </span>
             </h1>
           </>
-        }>
+        }
+      >
         <Image
-          src={`/images/Musical Odyssey Homepage - Light Mode (Desktop).png`}
+          src={
+            resolvedTheme === "dark"
+              ? "/images/Musical Odyssey Homepage - Dark Mode (Mobile).jpeg"
+              : "/images/Musical Odyssey Homepage - Light Mode (Mobile).jpeg"
+          }
           alt="hero"
           height={720}
           width={1400}
           className="mx-auto rounded-2xl object-cover h-full object-left-top"
-          draggable={false} />
+          draggable={false}
+        />
       </ContainerScroll>
     </div>
   );
