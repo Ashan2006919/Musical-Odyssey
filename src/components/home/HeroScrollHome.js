@@ -10,15 +10,15 @@ export default function HeroScrollHome() {
         titleComponent={
           <>
             <h1 className="text-4xl font-semibold text-black dark:text-white">
-              Unleash the power of <br />
+              A platform for exploring and rating <br />
               <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
-                Scroll Animations
+                Albums from Spotify!
               </span>
             </h1>
           </>
         }>
         <Image
-          src={`/linear.webp`}
+          src={`/images/Musical Odyssey Homepage - Light Mode.png`}
           alt="hero"
           height={720}
           width={1400}

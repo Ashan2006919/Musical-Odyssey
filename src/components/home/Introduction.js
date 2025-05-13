@@ -28,7 +28,7 @@ export default function Introduction() {
       <div className="-mt-36 mb-10">
         <ContainerScroll
           titleComponent={
-            <>
+            <div>
               {/* Animated Heading */}
               <motion.h1
                 className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center mb-16"
@@ -45,17 +45,17 @@ export default function Introduction() {
                 </LineShadowText>
               </motion.h1>
               <h1 className="text-4xl font-semibold text-black dark:text-white">
-                Unleash the power of <br />
+                A platform for exploring and rating <br />
                 <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
-                  Scroll Animations
+                  Albums from <span className="text-green-500"> Spotify! </span>
                 </span>
               </h1>
-            </>
+            </div>
           }
         >
           <Image
-            src={`/images/Musical-Odyssey-intro.jpeg`}
-            alt="hero"
+            src={`/images/Musical Odyssey Homepage - Light Mode.png`}
+            alt="Musical Odyssey Homepage"
             height={720}
             width={1400}
             className="mx-auto rounded-2xl object-cover h-full object-left-top"
@@ -78,7 +78,7 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
           >
-            <Iphone15Pro className="size-full" />
+            <Iphone15Pro className="size-full" src="/images/Musical Odyssey Homepage - Light Mode.png" />
           </motion.div>
           <motion.div
             className="absolute left-5 items-center justify-center h-full"
@@ -86,7 +86,7 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
           >
-            <Safari url="magicui.design" className="size-full" />
+            <Safari url="magicui.design" className="size-full" imageSrc="/images/Musical Odyssey Homepage - Light Mode.png" />
           </motion.div>
         </div>
 
