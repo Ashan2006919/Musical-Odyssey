@@ -18,7 +18,7 @@ export default function HeroScrollHome() {
           </>
         }>
         <Image
-          src={`/images/Musical Odyssey Homepage - Light Mode.png`}
+          src={`/images/Musical Odyssey Homepage - Light Mode (Desktop).png`}
           alt="hero"
           height={720}
           width={1400}

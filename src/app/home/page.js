@@ -276,81 +276,81 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col items-center mt-10 min-h-screen px-6">
-    {/* Animated Title */}
-    <motion.h1
-      className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center"
-      initial={{ y: "-100px", opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 1.5, ease: "easeInOut" }}
-    >
-      Welcome to
-      <LineShadowText
-        className="italic text-primary ml-3 whitespace-nowrap"
-        shadowColor={shadowColor}
+      {/* Animated Title */}
+      <motion.h1
+        className="text-[clamp(2rem,10vw,5rem)] font-extrabold leading-tight tracking-tighter text-center"
+        initial={{ y: "-100px", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
       >
-        Musical Odyssey!
-      </LineShadowText>
-    </motion.h1>
+        Welcome to
+        <LineShadowText
+          className="italic text-primary ml-3 whitespace-nowrap"
+          shadowColor={shadowColor}
+        >
+          Musical Odyssey!
+        </LineShadowText>
+      </motion.h1>
 
-    {/* Animated Search Input, Search Button, and Filter Button */}
-    <motion.div
-      className="flex items-center justify-center gap-4 mt-8 w-full max-w-lg"
-      initial={{ y: "-100px", opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
-    >
-      {/* Filter Button */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            color="primary"
-            className="p-2 text-lg border rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
-          >
-            <FaFilter className="mr-2" />
-            Filter
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48 mt-2 border border-orange-500">
-          <DropdownMenuLabel className="bg-orange-500 rounded-t-md text-white">
-            Select Genre
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {["Pop", "Rock", "Jazz", "Hip-Hop"].map((genre) => (
-            <DropdownMenuCheckboxItem
-              key={genre}
-              checked={selectedGenres.includes(genre)}
-              onCheckedChange={(checked) => handleGenreChange(genre, checked)}
-              className="text-gray-800 hover:bg-gray-100"
+      {/* Animated Search Input, Search Button, and Filter Button */}
+      <motion.div
+        className="flex items-center justify-center gap-4 mt-8 w-full max-w-lg"
+        initial={{ y: "-100px", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+      >
+        {/* Filter Button */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              color="primary"
+              className="p-2 text-lg border rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
             >
-              {genre}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <FaFilter className="mr-2" />
+              Filter
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48 mt-2 border border-orange-500">
+            <DropdownMenuLabel className="bg-orange-500 rounded-t-md text-white">
+              Select Genre
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {["Pop", "Rock", "Jazz", "Hip-Hop"].map((genre) => (
+              <DropdownMenuCheckboxItem
+                key={genre}
+                checked={selectedGenres.includes(genre)}
+                onCheckedChange={(checked) => handleGenreChange(genre, checked)}
+                className="text-gray-800 hover:bg-gray-100"
+              >
+                {genre}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-      {/* Search Input */}
-      <Input
-        type="text"
-        placeholder="Enter album name..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="p-4 text-lg border rounded-md shadow-lg focus:ring-2 focus:ring-primary focus:outline-none w-full max-w-md h-11 transition-all duration-300 ease-in-out"
-      />
+        {/* Search Input */}
+        <Input
+          type="text"
+          placeholder="Enter album name..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="p-4 text-lg border rounded-md shadow-lg focus:ring-2 focus:ring-primary focus:outline-none w-full max-w-md h-11 transition-all duration-300 ease-in-out"
+        />
 
-      {/* Search Button */}
-      <AnimatedSubscribeButton
-        className="w-36 p-4 text-lg rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
-        onClick={handleSearch}
-      >
-        <span className="group inline-flex items-center">
-          <span>Search</span>
-        </span>
-        <span>
-          <ChevronRightIcon className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </span>
-      </AnimatedSubscribeButton>
-    </motion.div>
+        {/* Search Button */}
+        <AnimatedSubscribeButton
+          className="w-36 p-4 text-lg rounded-md shadow-lg bg-primary text-white hover:bg-primary-dark transition-all duration-300 ease-in-out flex items-center justify-center h-11"
+          onClick={handleSearch}
+        >
+          <span className="group inline-flex items-center">
+            <span>Search</span>
+          </span>
+          <span>
+            <ChevronRightIcon className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </span>
+        </AnimatedSubscribeButton>
+      </motion.div>
 
       {/* Error Message */}
       {error && <p className="text-red-500 text-center">{error}</p>}
@@ -407,7 +407,7 @@ export default function Home() {
                     </a>
 
                     {/* Buttons */}
-                    <div className="flex gap-3 mt-4 w-full">
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full">
                       <Button
                         asChild
                         className="flex-1 px-3 py-1 flex items-center justify-center gap-2 transition-all shadow-md bg-green-500 hover:bg-green-600 text-sm text-white rounded-lg"

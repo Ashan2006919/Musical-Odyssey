@@ -54,7 +54,7 @@ export default function Introduction() {
           }
         >
           <Image
-            src={`/images/Musical Odyssey Homepage - Light Mode.png`}
+            src={`/images/Musical Odyssey Homepage - Light Mode (Desktop).png`}
             alt="Musical Odyssey Homepage"
             height={720}
             width={1400}
@@ -78,7 +78,7 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
           >
-            <Iphone15Pro className="size-full" src="/images/Musical Odyssey Homepage - Light Mode.png" />
+            <Iphone15Pro className="size-full" src="/images/Musical Odyssey Homepage - Light Mode (Desktop).png" />
           </motion.div>
           <motion.div
             className="absolute left-5 items-center justify-center h-full"
@@ -86,7 +86,7 @@ export default function Introduction() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
           >
-            <Safari url="magicui.design" className="size-full" imageSrc="/images/Musical Odyssey Homepage - Light Mode.png" />
+            <Safari url="magicui.design" className="size-full" imageSrc="/images/Musical Odyssey Homepage - Light Mode (Desktop).png" />
           </motion.div>
         </div>
 

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import RatingLabel from "@/components/RatingLabel";
+import ArtistRankingRatingLabel from "@/components/ArtistRankingRatingLabel";
 import {
   Dialog,
   DialogContent,
@@ -269,25 +269,45 @@ const ArtistRankingPage = () => {
                       #{index + 1}
                     </div>
 
-                    {/* Artist Image */}
-                    <img
-                      src={artist.image || "/images/default-artist.png"}
-                      alt={artist.name}
-                      className="w-full aspect-square object-cover"
-                    />
+                    {/* Artist Image as Link */}
+                    {artist.spotifyProfile ? (
+                      <a
+                        href={artist.spotifyProfile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={artist.image || "/images/default-artist.png"}
+                          alt={artist.name}
+                          className="w-full aspect-square object-cover"
+                        />
+                      </a>
+                    ) : (
+                      <img
+                        src={artist.image || "/images/default-artist.png"}
+                        alt={artist.name}
+                        className="w-full aspect-square object-cover"
+                      />
+                    )}
                   </div>
 
-                  {/* Artist Name and Rating Label */}
+                  {/* Artist Name as Link */}
                   <div className="flex justify-between items-center mt-4 px-4">
-                    <a
-                      href={artist.spotifyProfile}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-3xl font-bold text-blue-600 hover:underline"
-                    >
-                      {artist.name}
-                    </a>
-                    <RatingLabel rating={artist.averageRating} />
+                    {artist.spotifyProfile ? (
+                      <a
+                        href={artist.spotifyProfile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-3xl font-bold text-blue-600 hover:underline"
+                      >
+                        {artist.name}
+                      </a>
+                    ) : (
+                      <span className="text-3xl font-bold text-gray-600">
+                        {artist.name}
+                      </span>
+                    )}
+                    <ArtistRankingRatingLabel rating={artist.averageRating} />
                   </div>
                   <p className="text-gray-600 text-lg font-semibold px-4">
                     Average Rating:{" "}
@@ -444,7 +464,21 @@ const ArtistRankingPage = () => {
                       className="h-12 w-12 rounded-md"
                     />
                     <div>
-                      <h3 className="text-base font-semibold">{album.name}</h3>
+                      {/* Album Name as Link */}
+                      {album.spotifyUrl ? (
+                        <a
+                          href={album.spotifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-semibold text-blue-600 hover:underline"
+                        >
+                          {album.name}
+                        </a>
+                      ) : (
+                        <span className="text-base font-semibold text-gray-600">
+                          {album.name}
+                        </span>
+                      )}
                       <p
                         className="text-sm text-gray-500 cursor-pointer hover:underline"
                         onClick={() => {
@@ -460,7 +494,7 @@ const ArtistRankingPage = () => {
                     <p className="text-sm font-semibold">
                       {album.averageRating.toFixed(1)}
                     </p>
-                    <RatingLabel rating={album.averageRating} />
+                    <ArtistRankingRatingLabel rating={album.averageRating} />
                   </div>
                 </div>
               ))}

@@ -567,7 +567,7 @@ const RateAlbum = () => {
                         href={albumData.external_urls.spotify} // Spotify link for the album
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:underline text-blue-600"
+                        className="hover:underline text-blue-600 text-wrap"
                       >
                         {albumData.name}
                       </a>

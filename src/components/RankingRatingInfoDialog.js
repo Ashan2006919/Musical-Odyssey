@@ -10,41 +10,41 @@ import {
 import { Button } from "@/components/ui/button";
 import RatingLabel from "@/components/RatingLabel";
 
-const RatingInfoDialog = ({ isOpen, onClose }) => {
+const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="pb-1 text-orange-600 text-xl">Rating Information: Album Rating</DialogTitle>
+          <DialogTitle className="pb-1 text-orange-600 text-xl text-wrap">Rating Information: Artist Ranking</DialogTitle>
           <DialogDescription>
-            <span className="font-medium">How our rating system works for Album Ranking works:</span>
+            <span className="font-medium text-wrap">How our rating system for Artist Ranking works:</span>
           </DialogDescription>
         </DialogHeader>
         <hr />
         <div className="grid gap-4 pb-4 pt-2">
           <div className="flex justify-between items-center">
             <RatingLabel rating={10} />
-            <span className="font-semibold">9.5 - 10</span>
+            <span className="font-semibold">8 - 10</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={8} />
-            <span className="font-semibold">8 - 9.5</span>
+            <span className="font-semibold">6.5 - 8</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={7} />
-            <span className="font-semibold">6 - 8</span>
+            <span className="font-semibold">4.5 - 6.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={5} />
-            <span className="font-semibold">4.5 - 6</span>
+            <span className="font-semibold">2.5 - 4.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={3} />
-            <span className="font-semibold">2 - 4.5</span>
+            <span className="font-semibold">1.5 - 2.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={1} />
-            <span className="font-semibold">0 - 2</span>
+            <span className="font-semibold">0 - 1.5</span>
           </div>
         </div>
         <DialogFooter>
@@ -55,4 +55,4 @@ const RatingInfoDialog = ({ isOpen, onClose }) => {
   );
 };
 
-export default RatingInfoDialog;
+export default RankingRatingInfoDialog;
