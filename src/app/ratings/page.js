@@ -53,6 +53,7 @@ import {
 import { useSearchParams } from "next/navigation"; // Import useSearchParams
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"; // Import useRouter
+import Leaderboard from "@/components/Leaderboard"; // Import the Leaderboard component
 
 const RatingsPage = () => {
   const { data: session, status } = useSession();
@@ -74,6 +75,7 @@ const RatingsPage = () => {
   const [selectedRating, setSelectedRating] = useState(null); // Store the selected rating
   const [sortOption, setSortOption] = useState(""); // State for sorting option
   const [sortDirection, setSortDirection] = useState("asc"); // State for sorting direction
+  const [isRankingDialogOpen, setIsRankingDialogOpen] = useState(false); // State for leaderboard dialog
   const { theme } = useTheme();
 
   const resolvedTheme = theme?.resolvedTheme || "light";
@@ -515,7 +517,6 @@ const RatingsPage = () => {
             </Button>
           </motion.div>
         )}
-
         {/* Album Cards */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-24"
@@ -523,74 +524,87 @@ const RatingsPage = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.7 }}
         >
-          {filteredRatings.map((rating) => (
-            <MagicCard
-              className="cursor-pointer flex-col whitespace-nowrap shadow-md rounded-lg p-6 relative transition-transform duration-300 hover:scale-105 hover:shadow-lg"
-              gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
-              key={rating._id}
-            >
-              <button
-                className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 text-xl"
-                onClick={() => handleEditClick(rating._id)} // Pass the correct ratingId
+          {filteredRatings
+            .sort(
+              (a, b) =>
+                calculateAverageRating(b.ratings) -
+                calculateAverageRating(a.ratings) // Sort by average rating in descending order
+            )
+            .map((rating, index) => (
+              <MagicCard
+                className="cursor-pointer flex-col whitespace-nowrap shadow-md rounded-lg p-6 relative transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+                gradientColor={
+                  resolvedTheme === "dark" ? "#262626" : "#D9D9D955"
+                }
+                key={rating._id}
               >
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
-              <div className="flex items-center mb-4">
-                <img
-                  src={rating.trackDetails[0]?.albumCover}
-                  alt={rating.trackDetails[0]?.albumName}
-                  className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
-                />
-                <div className="flex flex-col">
-                  <h2 className="text-2xl font-bold text-wrap">
-                    {rating.trackDetails[0]?.albumName}
-                  </h2>
-                  <p className="text-gray-600 text-wrap">
-                    {rating.trackDetails[0]?.albumArtist}
-                  </p>
-                  <p className="text-gray-600 text-sm mt-1 text-wrap">
-                    {rating.trackDetails[0]?.releaseDate}
+                {/* Ranking Badge */}
+                <div
+                  className="absolute top-2 left-2 bg-blue-500 text-white text-lg font-bold py-2 px-4 rounded-full shadow-md z-10 cursor-pointer"
+                  onClick={() => setIsRankingDialogOpen(true)} // Open leaderboard dialog
+                >
+                  #{index + 1}
+                </div>
+
+                <button
+                  className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 text-xl"
+                  onClick={() => handleEditClick(rating._id)} // Pass the correct ratingId
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <div className="flex items-center mb-4">
+                  <img
+                    src={rating.trackDetails[0]?.albumCover}
+                    alt={rating.trackDetails[0]?.albumName}
+                    className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
+                  />
+                  <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-wrap">
+                      {rating.trackDetails[0]?.albumName}
+                    </h2>
+                    <p className="text-gray-600 text-wrap">
+                      {rating.trackDetails[0]?.albumArtist}
+                    </p>
+                    <p className="text-gray-600 text-sm mt-1 text-wrap">
+                      {rating.trackDetails[0]?.releaseDate}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center mb-2 justify-between">
+                    <h3 className="text-xl font-semibold">Track Ratings:</h3>
+                    <RatingLabel
+                      rating={calculateAverageRating(rating.ratings)}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-gray-600 text-lg font-semibold">
+                    Average Rating:{" "}
+                    <span className="font-medium">
+                      {calculateAverageRating(rating.ratings)}
+                    </span>
                   </p>
                 </div>
-              </div>
-              <div>
-                <div className="flex items-center mb-2 justify-between">
-                  <h3 className="text-xl font-semibold">Track Ratings:</h3>
-                  <RatingLabel
-                    rating={calculateAverageRating(rating.ratings)}
-                  />{" "}
-                  {/* Pass the updated rating */}
+                <div className="flex gap-4 mt-4">
+                  <Button
+                    className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                    onClick={() => handleViewRatingsClick(rating._id)} // Open View Ratings dialog
+                  >
+                    <FontAwesomeIcon icon={faSearch} /> View Ratings
+                  </Button>
+                  <Button
+                    className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+                    onClick={() => handleViewTrendsClick(rating._id)} // Open Trends dialog
+                  >
+                    <FontAwesomeIcon icon={faChartLine} /> View Trends
+                  </Button>
                 </div>
-              </div>
-              <div className="mt-4">
-                <p className="text-gray-600 text-lg font-semibold">
-                  Average Rating:{" "}
-                  <span className="font-medium">
-                    {calculateAverageRating(rating.ratings)}
-                  </span>
-                </p>
-                {/* Add the rating label */}
-              </div>
-              <div className="flex gap-4 mt-4">
-                <Button
-                  className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
-                  onClick={() => handleViewRatingsClick(rating._id)} // Open View Ratings dialog
-                >
-                  <FontAwesomeIcon icon={faSearch} /> {/* Add search icon */}
-                  View Ratings
-                </Button>
-                <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
-                  onClick={() => handleViewTrendsClick(rating._id)} // Open Trends dialog
-                >
-                  <FontAwesomeIcon icon={faChartLine} /> {/* Add trends icon */}
-                  View Trends
-                </Button>
-              </div>
-            </MagicCard>
-          ))}
+              </MagicCard>
+            ))}
         </motion.div>
       </div>
+
       {/* Edit Ratings Dialog */}
       {editing && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -707,125 +721,137 @@ const RatingsPage = () => {
       )}
 
       {/* View Ratings Dialog */}
-      {isViewRatingsDialogOpen &&
-        selectedRating &&
-        filteredRatings.map((rating) => (
-          <Dialog
-            key={rating.id} // make sure there's a unique `key`
-            open={isViewRatingsDialogOpen}
-            onOpenChange={setIsViewRatingsDialogOpen}
+      {isViewRatingsDialogOpen && selectedRating && (
+        <Dialog
+          open={isViewRatingsDialogOpen}
+          onOpenChange={setIsViewRatingsDialogOpen}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-            >
-              <DialogContent className="w-[95%] max-w-[450px] h-[650px] flex flex-col px-4 sm:px-4 mx-1 sm:mx-auto rounded-lg">
-                <DialogHeader>
-                  <DialogTitle className="pb-1 text-orange-500">
-                    <div className="flex items-center mb-4">
-                      <img
-                        src={selectedRating.trackDetails[0]?.albumCover}
-                        alt={selectedRating.trackDetails[0]?.albumName}
-                        className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
-                      />
-                      <div className="flex flex-col">
+            <DialogContent className="w-[95%] max-w-[450px] h-[650px] flex flex-col px-4 sm:px-4 mx-1 sm:mx-auto rounded-lg">
+              <DialogHeader>
+                <DialogTitle className="pb-1 text-orange-500">
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={selectedRating.trackDetails[0]?.albumCover}
+                      alt={selectedRating.trackDetails[0]?.albumName}
+                      className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
+                    />
+                    <div className="flex flex-col">
+                      <a
+                        href={`https://open.spotify.com/album/${selectedRating.albumId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-2xl font-bold text-wrap text-orange-500 hover:text-blue-500 hover:underline"
+                      >
+                        {selectedRating.trackDetails[0]?.albumName}
+                      </a>
+                      <p className="text-gray-600 text-wrap text-md">
+                        {selectedRating.trackDetails[0]?.albumArtist}
+                      </p>
+                      <p className="text-gray-600 text-sm mt-1 text-wrap">
+                        {selectedRating.trackDetails[0]?.releaseDate}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mr-5 -mt-14">
+                    <RatingLabel
+                      rating={calculateAverageRating(selectedRating.ratings)}
+                    />
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              <hr />
+              <DialogDescription className="text-gray-600 text-sm text-wrap">
+                Track ratings for this album:
+              </DialogDescription>
+              <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
+                {selectedRating.trackDetails.map((track) => (
+                  <div
+                    key={track.trackId}
+                    className="flex items-center justify-between py-2 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold">
+                        <img
+                          src="/icons/track-icon-96.png"
+                          alt={track.albumName}
+                          className="h-full w-full rounded-md"
+                        />
+                      </div>
+                      <div>
                         <a
-                          href={`https://open.spotify.com/album/${selectedRating.albumId}`}
+                          href={`https://open.spotify.com/track/${track.trackId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-2xl font-bold text-wrap text-orange-500 hover:text-blue-500 hover:underline"
+                          className="text-base font-semibold text-gray-800 text-wrap hover:text-blue-500 hover:underline"
                         >
-                          {selectedRating.trackDetails[0]?.albumName}
+                          {track.name}
                         </a>
-                        <p className="text-gray-600 text-wrap">
-                          {selectedRating.trackDetails[0]?.albumArtist}
-                        </p>
-                        <p className="text-gray-600 text-sm mt-1 text-wrap">
-                          {selectedRating.trackDetails[0]?.releaseDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end mr-5 -mt-14">
-                      <RatingLabel
-                        rating={calculateAverageRating(rating.ratings)}
-                      />
-                    </div>
-                  </DialogTitle>
-                </DialogHeader>
-                <hr />
-                <DialogDescription className="text-gray-600 text-sm text-wrap">
-                  Track ratings for this album:
-                </DialogDescription>
-                <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
-                  {selectedRating.trackDetails.map((track) => (
-                    <div
-                      key={track.trackId}
-                      className="flex items-center justify-between py-2 rounded-lg shadow-sm"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold">
-                          <img
-                            src="/icons/track-icon-96.png"
-                            alt={track.albumName}
-                            className="h-full w-full rounded-md"
-                          />
-                        </div>
-                        <div>
-                          <a
-                            href={`https://open.spotify.com/track/${track.trackId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base font-semibold text-gray-800 text-wrap hover:text-blue-500 hover:underline"
+                        <p className="text-sm text-gray-500">
+                          #
+                          <span
+                            onClick={() =>
+                              navigator.clipboard.writeText(track.trackId)
+                            }
+                            className="cursor-pointer hover:text-blue-500"
+                            title="Click to copy Spotify track ID"
                           >
-                            {track.name}
-                          </a>
-                          <p className="text-sm text-gray-500">
-                            #
-                            <span
-                              onClick={() =>
-                                navigator.clipboard.writeText(track.trackId)
-                              }
-                              className="cursor-pointer hover:text-blue-500"
-                              title="Click to copy Spotify track ID"
-                            >
-                              {track.trackId}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-gray-300 rounded-md px-3 mr-6 py-1 shadow-sm">
-                        {selectedRating.ratings[track.trackId] === null ||
-                        selectedRating.ratings[track.trackId] === "" ? (
-                          <div className="relative group">
-                            <span className="text-xl text-red-600">✖</span>
-                            {/* Tooltip */}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                              This track hasn't been rated because it was grayed
-                              out by you.
-                            </div>
-                          </div>
-                        ) : (
-                          selectedRating.ratings[track.trackId]
-                        )}
+                            {track.trackId}
+                          </span>
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-                <DialogFooter className="bg-white mt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsViewRatingsDialogOpen(false)}
-                  >
-                    Close
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </motion.div>
-          </Dialog>
-        ))}
+
+                    <div className="bg-white border border-gray-300 rounded-md px-3 mr-6 py-1 shadow-sm">
+                      {selectedRating.ratings[track.trackId] === null ||
+                      selectedRating.ratings[track.trackId] === "" ? (
+                        <div className="relative group">
+                          <span className="text-xl text-red-600">✖</span>
+                          {/* Tooltip */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            This track hasn't been rated because it was grayed
+                            out by you.
+                          </div>
+                        </div>
+                      ) : (
+                        selectedRating.ratings[track.trackId]
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <DialogFooter className="bg-white mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewRatingsDialogOpen(false)}
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </motion.div>
+        </Dialog>
+      )}
+
+      {/* Leaderboard Dialog */}
+      <Leaderboard
+        isOpen={isRankingDialogOpen}
+        onClose={() => setIsRankingDialogOpen(false)}
+        albums={filteredRatings
+          .map((rating) => ({
+            albumId: rating.albumId,
+            albumName: rating.trackDetails[0]?.albumName,
+            albumArtist: rating.trackDetails[0]?.albumArtist,
+            albumCover: rating.trackDetails[0]?.albumCover,
+            averageRating: calculateAverageRating(rating.ratings),
+          }))
+          .sort((a, b) => b.averageRating - a.averageRating)} // Sort albums by average rating
+      />
     </div>
   );
 };
