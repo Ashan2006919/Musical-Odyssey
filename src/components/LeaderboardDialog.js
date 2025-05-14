@@ -18,8 +18,8 @@ const LeaderboardDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[90%] sm:max-w-[600px] px-2 sm:px-8 flex flex-col mx-1 sm:mx-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            Artist Rankings
+          <DialogTitle className="text-2xl font-bold text-orange-500">
+            Artist Leaderboard
           </DialogTitle>
         </DialogHeader>
         <hr />
@@ -57,18 +57,19 @@ const LeaderboardDialog = ({
               </div>
 
               {/* Artist Image and Details */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 ml-5">
                 <img
                   src={artist.image || "/images/default-artist.png"}
                   alt={artist.name}
-                  className="h-12 w-12 rounded-md"
+                  className="h-12 w-12 rounded-md flex-shrink-0"
                 />
-                <div>
+                <div className="flex-1 min-w-0">
                   <a
                     href={artist.spotifyProfile}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-base font-semibold text-blue-600 hover:underline"
+                    className="text-base font-semibold text-blue-600 hover:underline truncate"
+                    title={artist.name} // Tooltip for full name
                   >
                     {artist.name}
                   </a>

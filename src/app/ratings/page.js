@@ -540,7 +540,7 @@ const RatingsPage = () => {
               >
                 {/* Ranking Badge */}
                 <div
-                  className="absolute top-2 left-2 bg-blue-500 text-white text-lg font-bold py-2 px-4 rounded-full shadow-md z-10 cursor-pointer"
+                  className="absolute -top-8 -left-8 bg-blue-500 text-white text-lg font-bold py-2 px-4 rounded-full shadow-md z-10 cursor-pointer"
                   onClick={() => setIsRankingDialogOpen(true)} // Open leaderboard dialog
                 >
                   #{index + 1}

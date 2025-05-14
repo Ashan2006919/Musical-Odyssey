@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import RatingLabel from "@/components/RatingLabel";
 import { Button } from "@/components/ui/button";
 
@@ -7,7 +12,7 @@ const Leaderboard = ({ isOpen, onClose, albums }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[90%] sm:max-w-[600px] px-2 sm:px-8 flex flex-col mx-1 sm:mx-auto rounded-lg h-5/6">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-blue-500">
+          <DialogTitle className="text-2xl font-bold text-orange-500">
             Album Leaderboard
           </DialogTitle>
         </DialogHeader>
@@ -20,7 +25,9 @@ const Leaderboard = ({ isOpen, onClose, albums }) => {
               className="flex items-center justify-between bg-gray-50 dark:bg-zinc-900 p-4 rounded-lg shadow-md mr-3"
             >
               <div className="flex items-center gap-4">
-                <span className="text-lg font-bold text-blue-500">#{index + 1}</span>
+                <span className="text-lg font-bold text-blue-500">
+                  #{index + 1}
+                </span>
                 <img
                   src={album.albumCover}
                   alt={album.albumName}
