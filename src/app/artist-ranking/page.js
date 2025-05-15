@@ -31,6 +31,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ArtistRankingRatingLabel from "@/components/ArtistRankingRatingLabel";
+import RatingLabel from "@/components/RatingLabel";
 import {
   Dialog,
   DialogContent,
@@ -298,12 +299,12 @@ const ArtistRankingPage = () => {
                         href={artist.spotifyProfile}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-3xl font-bold text-blue-600 hover:underline"
+                        className="text-3xl font-bold text-blue-600 hover:underline text-wrap"
                       >
                         {artist.name}
                       </a>
                     ) : (
-                      <span className="text-3xl font-bold text-gray-600">
+                      <span className="text-3xl font-bold text-gray-600 text-wrap">
                         {artist.name}
                       </span>
                     )}
@@ -495,7 +496,7 @@ const ArtistRankingPage = () => {
                     <p className="text-sm font-semibold">
                       {album.averageRating.toFixed(1)}
                     </p>
-                    <ArtistRankingRatingLabel rating={album.averageRating} />
+                    <RatingLabel rating={album.averageRating} />
                   </div>
                 </div>
               ))}

@@ -18,32 +18,36 @@ const ArtistRankingRatingLabel = ({ rating }) => {
     label = 'Bad';
     color = 'red';
     textColor = 'white';
-  } else if (rating < 2.5) {
+  } else if (rating < 3.5) {
     label = 'Mid';
     color = 'orange';
     textColor = 'white';
-  } else if (rating < 4.5) {
+  } else if (rating < 5) {
     label = 'Good';
     color = 'yellow';
     textColor = 'black';
-  } else if (rating < 6.5) {
+  } else if (rating < 7) {
     label = 'Great';
     color = 'green';
     textColor = 'white';
-  } else if (rating < 8) {
+  } else if (rating < 8.5) {
     label = 'Amazing';
     color = 'limegreen';
     textColor = 'black';
-  } else {
+  } else if (rating < 9) {
     label = 'Perfect';
     color = 'blue';
+    textColor = 'white';
+  } else {
+    label = 'Legendary';
+    color = 'purple';
     textColor = 'white';
   }
 
   return (
     <>
       <span
-        style={{ backgroundColor: color, padding: '0.5rem', borderRadius: '0.25rem', color: textColor , cursor: 'pointer' }}
+        style={{ backgroundColor: color, padding: '0.5rem', borderRadius: '0.25rem', color: textColor, cursor: 'pointer' }}
         onClick={handleLabelClick}
         className="font-semibold text-sm"
       >

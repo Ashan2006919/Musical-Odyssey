@@ -26,24 +26,34 @@ const RatingLabel = ({ rating }) => {
     label = 'Good';
     color = 'yellow';
     textColor = 'black';
-  } else if (rating < 8) {
+  } else if (rating < 7.5) {
     label = 'Great';
     color = 'green';
     textColor = 'white';
-  } else if (rating < 9.5) {
+  } else if (rating < 9) {
     label = 'Amazing';
     color = 'limegreen';
     textColor = 'black';
-  } else {
+  } else if (rating < 9.5) {
     label = 'Perfect';
     color = 'blue';
     textColor = 'white';
+  } else {
+    label = 'Legendary';
+    color = 'gold';
+    textColor = 'black';
   }
 
   return (
     <>
       <span
-        style={{ backgroundColor: color, padding: '0.5rem', borderRadius: '0.25rem', color: textColor , cursor: 'pointer' }}
+        style={{
+          backgroundColor: color,
+          padding: '0.5rem',
+          borderRadius: '0.25rem',
+          color: textColor,
+          cursor: 'pointer',
+        }}
         onClick={handleLabelClick}
         className="font-semibold text-sm"
       >

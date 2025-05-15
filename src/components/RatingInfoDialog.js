@@ -17,7 +17,7 @@ const RatingInfoDialog = ({ isOpen, onClose }) => {
         <DialogHeader>
           <DialogTitle className="pb-1 text-orange-600 text-xl">Rating Information: Album Rating</DialogTitle>
           <DialogDescription>
-            <span className="font-medium">How our rating system works for Album Ranking works:</span>
+            <span className="font-medium">How our rating system works for album rankings:</span>
           </DialogDescription>
         </DialogHeader>
         <hr />
@@ -27,12 +27,16 @@ const RatingInfoDialog = ({ isOpen, onClose }) => {
             <span className="font-semibold">9.5 - 10</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={8} />
-            <span className="font-semibold">8 - 9.5</span>
+            <RatingLabel rating={9.2} />
+            <span className="font-semibold">9 - 9.5</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={7} />
-            <span className="font-semibold">6 - 8</span>
+            <RatingLabel rating={8} />
+            <span className="font-semibold">7.5 - 9</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <RatingLabel rating={6.5} />
+            <span className="font-semibold">6 - 7.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={5} />
