@@ -40,8 +40,8 @@ const RatingLabel = ({ rating }) => {
     textColor = 'white';
   } else {
     label = 'Legendary';
-    color = 'gold';
-    textColor = 'black';
+    color = 'purple';
+    textColor = 'white';
   }
 
   return (

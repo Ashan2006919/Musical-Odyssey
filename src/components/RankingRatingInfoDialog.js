@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import RatingLabel from "@/components/RatingLabel";
+import ArtistRankingRatingLabel from "@/components/ArtistRankingRatingLabel";
 
 const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
   return (
@@ -23,31 +23,31 @@ const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
         <hr />
         <div className="grid gap-4 pb-4 pt-2">
           <div className="flex justify-between items-center">
-            <RatingLabel rating={10} />
+            <ArtistRankingRatingLabel rating={10} />
             <span className="font-semibold">9.5 - 10</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={9.2} />
+            <ArtistRankingRatingLabel rating={9.2} />
             <span className="font-semibold">9 - 9.5</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={8} />
+            <ArtistRankingRatingLabel rating={8} />
             <span className="font-semibold">7.5 - 9</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={6.5} />
+            <ArtistRankingRatingLabel rating={6.5} />
             <span className="font-semibold">6 - 7.5</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={5} />
+            <ArtistRankingRatingLabel rating={5} />
             <span className="font-semibold">4.5 - 6</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={3} />
+            <ArtistRankingRatingLabel rating={3} />
             <span className="font-semibold">2 - 4.5</span>
           </div>
           <div className="flex justify-between items-center">
-            <RatingLabel rating={1} />
+            <ArtistRankingRatingLabel rating={1} />
             <span className="font-semibold">0 - 2</span>
           </div>
         </div>
