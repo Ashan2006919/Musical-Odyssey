@@ -244,7 +244,7 @@ const ArtistRankingPage = () => {
 
         {/* Artist Cards or No Content Message */}
         <motion.div
-          className="grid grid-cols gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.7 }}
@@ -343,7 +343,8 @@ const ArtistRankingPage = () => {
               transition={{ duration: 1, delay: 0.7 }}
             >
               <p className="text-lg text-gray-600 mb-6">
-                You haven't ranked any artists yet. Start exploring and ranking your favorite artists now!
+                You haven't ranked any artists yet. Start exploring and ranking
+                your favorite artists now!
               </p>
               <Button
                 onClick={() => router.push("/")}
