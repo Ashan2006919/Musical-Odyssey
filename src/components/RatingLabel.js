@@ -26,15 +26,15 @@ const RatingLabel = ({ rating }) => {
     label = 'Good';
     color = 'yellow';
     textColor = 'black';
-  } else if (rating < 7.5) {
+  } else if (rating < 7.6) {
     label = 'Great';
     color = 'green';
     textColor = 'white';
-  } else if (rating < 9) {
+  } else if (rating < 8.8) {
     label = 'Amazing';
     color = 'limegreen';
     textColor = 'black';
-  } else if (rating < 9.5) {
+  } else if (rating < 9.6) {
     label = 'Perfect';
     color = 'blue';
     textColor = 'white';
