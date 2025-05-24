@@ -302,8 +302,10 @@ const ProfilePage = () => {
     const query = e.target.value.toLowerCase();
     setAlbumSearchQuery(query);
 
-    const filtered = ratedAlbums.filter((album) =>
-      album.name.toLowerCase().includes(query)
+    const filtered = ratedAlbums.filter(
+      (album) =>
+        (album.albumName?.toLowerCase() || "").includes(query) ||
+        (album.albumArtist?.toLowerCase() || "").includes(query)
     );
     setFilteredRatedAlbums(filtered);
   };
@@ -784,9 +786,9 @@ const ProfilePage = () => {
               >
                 <Input
                   type="text"
-                  placeholder="Search predefined playlists..."
-                  value={predefinedSearchQuery}
-                  onChange={handlePredefinedSearch}
+                  placeholder="Search rated albums..."
+                  value={albumSearchQuery}
+                  onChange={handleAlbumSearch}
                   className="w-full px-4 py-2 border rounded-lg"
                 />
               </motion.div>
