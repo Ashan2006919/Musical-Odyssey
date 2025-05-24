@@ -296,18 +296,11 @@ const RatingsPage = () => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    const filtered = ratingsData.filter((rating) =>
-      rating.trackDetails.some((track) => {
-        const releaseYear = track.releaseDate?.split("-")[0];
-        const releaseDecade = releaseYear?.slice(0, 3) + "0";
-
-        return (
-          (track.albumName.toLowerCase().includes(query) ||
-            track.albumArtist.toLowerCase().includes(query)) &&
-          (yearFilter === "" || releaseDecade === yearFilter)
-        );
-      })
-    );
+    const filtered = ratingsData.filter((rating) => {
+      const albumName = rating.albumName?.toLowerCase() || "";
+      const albumArtist = rating.albumArtist?.toLowerCase() || "";
+      return albumName.includes(query) || albumArtist.includes(query);
+    });
 
     setFilteredRatings(filtered);
   };
@@ -315,20 +308,16 @@ const RatingsPage = () => {
   const handleYearFilterChange = (selectedYearOrDecade) => {
     setYearFilter(selectedYearOrDecade);
 
-    const filtered = ratingsData.filter((rating) =>
-      rating.trackDetails.some((track) => {
-        const releaseYear = track.releaseDate?.split("-")[0]; // Extract the release year
-        const releaseDecade = releaseYear?.slice(0, 3) + "0s"; // Derive the decade (e.g., "2000s")
+    const filtered = ratingsData.filter((rating) => {
+      const releaseYear = rating.releaseDate?.split("-")[0];
+      const releaseDecade = releaseYear ? releaseYear.slice(0, 3) + "0s" : "";
+      return (
+        selectedYearOrDecade === "" ||
+        releaseYear === selectedYearOrDecade ||
+        releaseDecade === selectedYearOrDecade
+      );
+    });
 
-        // Check if the filter matches the year or the decade
-        return (
-          selectedYearOrDecade === "" // No filter applied
-          || releaseYear === selectedYearOrDecade // Matches specific year
-          || releaseDecade === selectedYearOrDecade // Matches decade
-        );
-      })
-    );
-    console.log("Filtered Ratings:", filtered);
     setFilteredRatings(filtered);
   };
 
@@ -348,32 +337,30 @@ const RatingsPage = () => {
       setSortDirection("asc");
     }
 
-    // Use the new values for sorting
-    const sortedRatings = [...filteredRatings].sort((a, b) => {
-      const directionMultiplier = newSortDirection === "asc" ? 1 : -1;
-
-      switch (option) {
-        case "rating":
-          return (
-            directionMultiplier *
-            (calculateAverageRating(a.ratings) - calculateAverageRating(b.ratings))
-          );
-        case "releaseDate":
-          return (
-            directionMultiplier *
-            (new Date(a.releaseDate) - new Date(b.releaseDate))
-          );
-        case "albumName":
-          return (
-            directionMultiplier *
-            a.albumName.localeCompare(b.albumName)
-          );
-        default:
-          return 0; // No sorting
-      }
+    // Always sort from the current filtered list
+    setFilteredRatings((prev) => {
+      const sorted = [...prev].sort((a, b) => {
+        const directionMultiplier = newSortDirection === "asc" ? 1 : -1;
+        switch (option) {
+          case "rating":
+            return (
+              directionMultiplier *
+              (calculateAverageRating(a.ratings) -
+                calculateAverageRating(b.ratings))
+            );
+          case "releaseDate":
+            return (
+              directionMultiplier *
+              (new Date(a.releaseDate) - new Date(b.releaseDate))
+            );
+          case "albumName":
+            return directionMultiplier * a.albumName.localeCompare(b.albumName);
+          default:
+            return 0;
+        }
+      });
+      return sorted;
     });
-
-    setFilteredRatings(sortedRatings);
   };
 
   if (loading) {
@@ -454,6 +441,21 @@ const RatingsPage = () => {
             onChange={handleSearch}
             className="w-full max-w-md px-4 py-2 border rounded-lg"
           />
+
+          {/* Year/Decade Filter Dropdown */}
+          <select
+            value={yearFilter}
+            onChange={(e) => handleYearFilterChange(e.target.value)}
+            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+          >
+            <option value="">All Years</option>
+            {/* Example: Populate from yearsData or hardcode */}
+            {yearsData.map((yearOrDecade) => (
+              <option key={yearOrDecade} value={yearOrDecade}>
+                {yearOrDecade}
+              </option>
+            ))}
+          </select>
 
           {/* Dropdown Menu for Sorting */}
           <DropdownMenu>

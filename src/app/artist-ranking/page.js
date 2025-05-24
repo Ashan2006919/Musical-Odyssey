@@ -103,36 +103,72 @@ const ArtistRankingPage = () => {
   };
 
   const handleSortChange = (option) => {
+    let newSortDirection = sortDirection;
+    let newSortOption = sortOption;
+
     if (sortOption === option) {
-      setSortDirection((prevDirection) =>
-        prevDirection === "asc" ? "desc" : "asc"
-      );
+      newSortDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(newSortDirection);
     } else {
+      newSortOption = option;
+      newSortDirection = "asc";
       setSortOption(option);
       setSortDirection("asc");
     }
 
-    const sortedArtists = [...filteredArtists].sort((a, b) => {
-      const directionMultiplier = sortDirection === "asc" ? 1 : -1;
-
-      switch (option) {
-        case "rating":
-          return (
-            directionMultiplier *
-            ((b.averageRating || 0) - (a.averageRating || 0))
-          );
-        case "name":
-          return directionMultiplier * a.name.localeCompare(b.name);
-        default:
-          return 0;
-      }
+    setFilteredArtists((prev) => {
+      const sorted = [...prev].sort((a, b) => {
+        const directionMultiplier = newSortDirection === "asc" ? 1 : -1;
+        switch (option) {
+          case "averageRating":
+            return directionMultiplier * (a.averageRating - b.averageRating);
+          case "artistName":
+            return directionMultiplier * a.name.localeCompare(b.name);
+          default:
+            return 0;
+        }
+      });
+      return sorted;
     });
-
-    setFilteredArtists(sortedArtists);
   };
 
-  const handleViewRatingsClick = (artist) => {
-    setSelectedArtist(artist);
+  const handleViewRatingsClick = async (artist) => {
+    // artist.albums should be an array of { albumId, averageRating }
+    if (!artist.albums || artist.albums.length === 0) {
+      setSelectedArtist({ ...artist, albums: [] });
+      setIsViewRatingsDialogOpen(true);
+      return;
+    }
+
+    // Fetch album details for each albumId
+    const albumsWithDetails = await Promise.all(
+      artist.albums.map(async (album) => {
+        try {
+          const res = await axios.get(
+            `/api/spotify/albumDetails?albumId=${album.albumId}`
+          );
+          const albumData = res.data;
+          return {
+            albumId: album.albumId,
+            name: albumData.name,
+            image: albumData.images?.[0]?.url,
+            spotifyUrl: albumData.external_urls?.spotify,
+            averageRating: album.averageRating,
+          };
+        } catch (err) {
+          // fallback if fetch fails
+          return {
+            albumId: album.albumId,
+            name: "Unknown Album",
+            image: "/images/default-album.png",
+            spotifyUrl: "",
+            averageRating: album.averageRating,
+          };
+        }
+      })
+    );
+
+    setSelectedArtist({ ...artist, albums: albumsWithDetails });
     setIsViewRatingsDialogOpen(true);
   };
 
