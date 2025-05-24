@@ -67,6 +67,11 @@ const ProfilePage = () => {
   const theme = useTheme();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleToastMessage = (message, type) => {
     if (type === "success") {
@@ -428,6 +433,9 @@ const ProfilePage = () => {
   };
 
   const MotionCard = motion(Card);
+
+  // Prevent rendering until mounted (avoids hydration mismatch)
+  if (!mounted) return null;
 
   return (
     <motion.div
