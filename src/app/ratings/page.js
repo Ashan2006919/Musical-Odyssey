@@ -106,28 +106,21 @@ const RatingsPage = () => {
         // Process and set the ratings data
         const updatedRatings = await Promise.all(
           ratings.map(async (rating) => {
-            const trackDetails = await Promise.all(
-              Object.keys(rating.ratings).map(async (trackId) => {
-                const trackResponse = await axios.get(
-                  `/api/spotify/details?trackId=${trackId}`
-                );
-                const trackData = trackResponse.data;
-
-                return {
-                  trackId,
-                  name: trackData.name,
-                  albumName: trackData.album.name,
-                  albumArtist: trackData.artists
-                    .map((artist) => artist.name)
-                    .join(", "),
-                  artistId: trackData.artists[0]?.id, // Ensure artistId is included
-                  albumCover: trackData.album.images[0]?.url,
-                  releaseDate: trackData.album.release_date,
-                };
-              })
+            // Fetch album details using albumId (not track details)
+            const albumResponse = await axios.get(
+              `/api/spotify/albumDetails?albumId=${rating.albumId}`
             );
-
-            return { ...rating, trackDetails, albumId: rating.albumId };
+            const albumData = albumResponse.data;
+            return {
+              ...rating,
+              albumId: rating.albumId,
+              albumName: albumData.name,
+              albumArtist: albumData.artists
+                .map((artist) => artist.name)
+                .join(", "),
+              albumCover: albumData.images[0]?.url,
+              releaseDate: albumData.release_date,
+            };
           })
         );
 
@@ -175,11 +168,35 @@ const RatingsPage = () => {
     toast.info("Loading rating trends...");
   };
 
-  const handleViewRatingsClick = (ratingId) => {
-    const rating = ratingsData.find((r) => r._id === ratingId); // Find the rating by ID
+  const handleViewRatingsClick = async (ratingId) => {
+    const rating = ratingsData.find((r) => r._id === ratingId);
+    console.log("handleViewRatingsClick - rating:", rating);
     if (rating) {
-      setSelectedRating(rating); // Set the selected rating
-      setIsViewRatingsDialogOpen(true); // Open the dialog
+      const trackIds = Object.keys(rating.ratings);
+      console.log("Track IDs for album:", trackIds);
+      const trackDetails = await Promise.all(
+        trackIds.map(async (trackId) => {
+          const trackResponse = await axios.get(
+            `/api/spotify/details?trackId=${trackId}`
+          );
+          const trackData = trackResponse.data;
+          console.log("Fetched trackData:", trackData);
+          return {
+            trackId,
+            name: trackData.name,
+            albumName: trackData.album.name,
+            albumArtist: trackData.artists
+              .map((artist) => artist.name)
+              .join(", "),
+            artistId: trackData.artists[0]?.id,
+            albumCover: trackData.album.images[0]?.url,
+            releaseDate: trackData.album.release_date,
+          };
+        })
+      );
+      console.log("trackDetails array:", trackDetails);
+      setSelectedRating({ ...rating, trackDetails });
+      setIsViewRatingsDialogOpen(true);
     } else {
       console.error(`No rating found for ratingId: ${ratingId}`);
       toast.error("Failed to load ratings for this album.");
@@ -305,9 +322,9 @@ const RatingsPage = () => {
 
         // Check if the filter matches the year or the decade
         return (
-          selectedYearOrDecade === "" || // No filter applied
-          releaseYear === selectedYearOrDecade || // Matches specific year
-          releaseDecade === selectedYearOrDecade // Matches decade
+          selectedYearOrDecade === "" // No filter applied
+          || releaseYear === selectedYearOrDecade // Matches specific year
+          || releaseDecade === selectedYearOrDecade // Matches decade
         );
       })
     );
@@ -316,39 +333,40 @@ const RatingsPage = () => {
   };
 
   const handleSortChange = (option) => {
+    let newSortDirection = sortDirection;
+    let newSortOption = sortOption;
+
     if (sortOption === option) {
       // Toggle the sort direction if the same option is selected
-      setSortDirection((prevDirection) =>
-        prevDirection === "asc" ? "desc" : "asc"
-      );
+      newSortDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(newSortDirection);
     } else {
       // Set the new sort option and reset to ascending order
+      newSortOption = option;
+      newSortDirection = "asc";
       setSortOption(option);
       setSortDirection("asc");
     }
 
+    // Use the new values for sorting
     const sortedRatings = [...filteredRatings].sort((a, b) => {
-      const directionMultiplier = sortDirection === "asc" ? 1 : -1;
+      const directionMultiplier = newSortDirection === "asc" ? 1 : -1;
 
       switch (option) {
         case "rating":
           return (
             directionMultiplier *
-            (calculateAverageRating(b.ratings) -
-              calculateAverageRating(a.ratings))
+            (calculateAverageRating(a.ratings) - calculateAverageRating(b.ratings))
           );
         case "releaseDate":
           return (
             directionMultiplier *
-            (new Date(b.trackDetails[0]?.releaseDate) -
-              new Date(a.trackDetails[0]?.releaseDate))
+            (new Date(a.releaseDate) - new Date(b.releaseDate))
           );
         case "albumName":
           return (
             directionMultiplier *
-            a.trackDetails[0]?.albumName.localeCompare(
-              b.trackDetails[0]?.albumName
-            )
+            a.albumName.localeCompare(b.albumName)
           );
         default:
           return 0; // No sorting
@@ -554,19 +572,19 @@ const RatingsPage = () => {
                 </button>
                 <div className="flex items-center mb-4">
                   <img
-                    src={rating.trackDetails[0]?.albumCover}
-                    alt={rating.trackDetails[0]?.albumName}
+                    src={rating.albumCover}
+                    alt={rating.albumName}
                     className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
                   />
                   <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-wrap">
-                      {rating.trackDetails[0]?.albumName}
+                      {rating.albumName}
                     </h2>
                     <p className="text-gray-600 text-wrap">
-                      {rating.trackDetails[0]?.albumArtist}
+                      {rating.albumArtist}
                     </p>
                     <p className="text-gray-600 text-sm mt-1 text-wrap">
-                      {rating.trackDetails[0]?.releaseDate}
+                      {rating.releaseDate}
                     </p>
                   </div>
                 </div>
@@ -736,27 +754,38 @@ const RatingsPage = () => {
               <DialogHeader>
                 <DialogTitle className="pb-1 text-orange-500">
                   <div className="flex items-center mb-4">
-                    <img
-                      src={selectedRating.trackDetails[0]?.albumCover}
-                      alt={selectedRating.trackDetails[0]?.albumName}
-                      className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
-                    />
-                    <div className="flex flex-col">
-                      <a
-                        href={`https://open.spotify.com/album/${selectedRating.albumId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-2xl font-bold text-wrap text-orange-500 hover:text-blue-500 hover:underline"
-                      >
-                        {selectedRating.trackDetails[0]?.albumName}
-                      </a>
-                      <p className="text-gray-600 text-wrap text-md">
-                        {selectedRating.trackDetails[0]?.albumArtist}
-                      </p>
-                      <p className="text-gray-600 text-sm mt-1 text-wrap">
-                        {selectedRating.trackDetails[0]?.releaseDate}
-                      </p>
-                    </div>
+                    {selectedRating.trackDetails &&
+                    selectedRating.trackDetails.length > 0 ? (
+                      <>
+                        <img
+                          src={selectedRating.trackDetails[0]?.albumCover}
+                          alt={selectedRating.trackDetails[0]?.albumName}
+                          className="h-20 w-20 rounded-md mr-4 transition-transform hover:scale-110"
+                        />
+                        <div className="flex flex-col">
+                          <a
+                            href={`https://open.spotify.com/album/${selectedRating.albumId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-2xl font-bold text-wrap text-orange-500 hover:text-blue-500 hover:underline"
+                          >
+                            {selectedRating.trackDetails[0]?.albumName}
+                          </a>
+                          <p className="text-gray-600 text-wrap text-md">
+                            {selectedRating.trackDetails[0]?.albumArtist}
+                          </p>
+                          <p className="text-gray-600 text-sm mt-1 text-wrap">
+                            {selectedRating.trackDetails[0]?.releaseDate}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-full">
+                        <span className="text-gray-400">
+                          Loading album details...
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end mr-5 -mt-14">
                     <RatingLabel
@@ -845,12 +874,12 @@ const RatingsPage = () => {
         albums={filteredRatings
           .map((rating) => ({
             albumId: rating.albumId,
-            albumName: rating.trackDetails[0]?.albumName,
-            albumArtist: rating.trackDetails[0]?.albumArtist,
-            albumCover: rating.trackDetails[0]?.albumCover,
+            albumName: rating.albumName,
+            albumArtist: rating.albumArtist,
+            albumCover: rating.albumCover,
             averageRating: calculateAverageRating(rating.ratings),
           }))
-          .sort((a, b) => b.averageRating - a.averageRating)} // Sort albums by average rating
+          .sort((a, b) => b.averageRating - a.averageRating)}
       />
     </div>
   );

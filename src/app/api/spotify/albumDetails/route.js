@@ -5,6 +5,7 @@ async function getAccessToken() {
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
+    console.error("Spotify credentials missing");
     return NextResponse.json({ error: "Spotify credentials missing" }, { status: 500 });
   }
 
@@ -20,6 +21,7 @@ async function getAccessToken() {
   });
 
   if (!authResponse.ok) {
+    console.error("Failed to authenticate with Spotify");
     return NextResponse.json({ error: "Failed to authenticate with Spotify" }, { status: 500 });
   }
 
@@ -29,10 +31,13 @@ async function getAccessToken() {
 
 export async function GET(req) {
   try {
+    console.log("albumDetails API called:", req.url);
     const { searchParams } = new URL(req.url);
     const albumId = searchParams.get("albumId");
+    console.log("albumId received:", albumId);
 
     if (!albumId) {
+      console.error("Album ID missing in request");
       return NextResponse.json({ error: "Album ID missing" }, { status: 400 });
     }
 
@@ -52,12 +57,13 @@ export async function GET(req) {
     }
 
     if (!albumResponse.ok) {
-      const errorText = await albumResponse.text(); // Read plain text response
+      const errorText = await albumResponse.text();
       console.error("Spotify API Error:", errorText);
       return NextResponse.json({ error: errorText || "Album not found" }, { status: albumResponse.status });
     }
 
     const albumData = await albumResponse.json();
+    console.log("albumData from Spotify:", albumData);
     return NextResponse.json(albumData);
   } catch (error) {
     console.error("API Error:", error);
