@@ -427,6 +427,8 @@ const ProfilePage = () => {
     }
   };
 
+  const MotionCard = motion(Card);
+
   return (
     <motion.div
       className="px-8 md:px-16 py-4 md:py-8 flex flex-col items-center justify-center min-h-screen"
@@ -458,7 +460,7 @@ const ProfilePage = () => {
         transition={{ duration: 1, delay: 0.5 }}
       >
         {/* Profile Card */}
-        <motion.Card
+        <MotionCard
           className="col-span-4 md:col-span-1 shadow-md rounded-lg row-span-3 md:row-span-2"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -569,10 +571,10 @@ const ProfilePage = () => {
               </div>
             </CardContent>
           </MagicCard>
-        </motion.Card>
+        </MotionCard>
 
         {/* Rated Albums Card */}
-        <motion.Card
+        <MotionCard
           className="col-span-4 md:col-span-3 shadow-md rounded-lg row-span-3 md:row-span-2"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -756,10 +758,10 @@ const ProfilePage = () => {
               </div>
             </CardContent>
           </MagicCard>
-        </motion.Card>
+        </MotionCard>
 
         {/* Predefined Playlists Section */}
-        <motion.Card
+        <MotionCard
           className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -835,10 +837,10 @@ const ProfilePage = () => {
               </motion.div>
             </CardContent>
           </MagicCard>
-        </motion.Card>
+        </MotionCard>
 
         {/* User Playlists Section */}
-        <motion.Card
+        <MotionCard
           className="md:col-span-2 col-span-4 row-span-2 shadow-md rounded-lg"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -916,7 +918,7 @@ const ProfilePage = () => {
               )}
             </CardContent>
           </MagicCard>
-        </motion.Card>
+        </MotionCard>
 
         {/* Other Cards */}
 
