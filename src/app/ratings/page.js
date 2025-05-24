@@ -308,16 +308,20 @@ const RatingsPage = () => {
   const handleYearFilterChange = (selectedYearOrDecade) => {
     setYearFilter(selectedYearOrDecade);
 
-    const filtered = ratingsData.filter((rating) => {
-      const releaseYear = rating.releaseDate?.split("-")[0];
-      const releaseDecade = releaseYear ? releaseYear.slice(0, 3) + "0s" : "";
-      return (
-        selectedYearOrDecade === "" ||
-        releaseYear === selectedYearOrDecade ||
-        releaseDecade === selectedYearOrDecade
-      );
-    });
+    const filtered = ratingsData.filter((rating) =>
+      rating.trackDetails.some((track) => {
+        const releaseYear = track.releaseDate?.split("-")[0]; // Extract the release year
+        const releaseDecade = releaseYear?.slice(0, 3) + "0s"; // Derive the decade (e.g., "2000s")
 
+        // Check if the filter matches the year or the decade
+        return (
+          selectedYearOrDecade === "" || // No filter applied
+          releaseYear === selectedYearOrDecade || // Matches specific year
+          releaseDecade === selectedYearOrDecade // Matches decade
+        );
+      })
+    );
+    console.log("Filtered Ratings:", filtered);
     setFilteredRatings(filtered);
   };
 
@@ -442,20 +446,43 @@ const RatingsPage = () => {
             className="w-full max-w-md px-4 py-2 border rounded-lg"
           />
 
-          {/* Year/Decade Filter Dropdown */}
-          <select
-            value={yearFilter}
-            onChange={(e) => handleYearFilterChange(e.target.value)}
-            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-          >
-            <option value="">All Years</option>
-            {/* Example: Populate from yearsData or hardcode */}
-            {yearsData.map((yearOrDecade) => (
-              <option key={yearOrDecade} value={yearOrDecade}>
-                {yearOrDecade}
-              </option>
-            ))}
-          </select>
+          {/* Dropdown Menu for Year Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Filter by Year</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Filter by Decade</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Object.entries(yearsData).map(([decade, years]) => (
+                <DropdownMenuSub key={decade}>
+                  <DropdownMenuSubTrigger
+                    onClick={() => handleYearFilterChange(decade)} // Filter by decade on click
+                    className="font-semibold text-blue-500 cursor-pointer"
+                  >
+                    <span>{decade}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {/* Filter by specific year */}
+                      {years.map((year) => (
+                        <DropdownMenuItem
+                          key={year}
+                          onClick={() => handleYearFilterChange(year)}
+                        >
+                          {year}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleYearFilterChange("")}>
+                Clear Filter
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Dropdown Menu for Sorting */}
           <DropdownMenu>
@@ -537,6 +564,7 @@ const RatingsPage = () => {
             </Button>
           </motion.div>
         )}
+
         {/* Album Cards */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-24"
