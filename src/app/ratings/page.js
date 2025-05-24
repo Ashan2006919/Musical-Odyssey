@@ -147,13 +147,39 @@ const RatingsPage = () => {
     fetchRatings();
   }, [session?.user?.omid, albumIdFromQuery]);
 
-  const handleEditClick = (ratingId) => {
+  const handleEditClick = async (ratingId) => {
     const rating = ratingsData.find((r) => r._id === ratingId); // Find by ratingId
 
     if (!rating) {
       console.error(`No rating found for ratingId: ${ratingId}`);
       toast.error("Failed to load album ratings for editing.");
       return;
+    }
+
+    // Fetch track details if not already present
+    if (!rating.trackDetails) {
+      const trackIds = Object.keys(rating.ratings);
+      const trackDetails = await Promise.all(
+        trackIds.map(async (trackId) => {
+          const trackResponse = await axios.get(
+            `/api/spotify/details?trackId=${trackId}`
+          );
+          const trackData = trackResponse.data;
+          return {
+            trackId,
+            name: trackData.name,
+            albumName: trackData.album.name,
+            albumArtist: trackData.artists.map((artist) => artist.name).join(", "),
+            artistId: trackData.artists[0]?.id,
+            albumCover: trackData.album.images[0]?.url,
+            releaseDate: trackData.album.release_date,
+          };
+        })
+      );
+      // Update the rating in ratingsData with trackDetails
+      setRatingsData((prev) =>
+        prev.map((r) => (r._id === ratingId ? { ...r, trackDetails } : r))
+      );
     }
 
     setEditing(ratingId); // Set the ratingId being edited
@@ -677,38 +703,42 @@ const RatingsPage = () => {
               <hr />
               {/* Scrollable tracklist container */}
               <div className="grid gap-4 pb-4 pt-2 overflow-y-auto flex-grow">
-                {ratingsData
-                  .find((r) => r._id === editing) // Find by ratingId
-                  ?.trackDetails.map((track) => (
-                    <div
-                      key={track.trackId}
-                      className="grid grid-cols-4 items-center gap-4 mr-5"
-                    >
-                      <Label
-                        htmlFor={`rating-${track.trackId}`}
-                        className="text-right"
+                {ratingsData.find((r) => r._id === editing)?.trackDetails ? (
+                  ratingsData
+                    .find((r) => r._id === editing)
+                    .trackDetails.map((track) => (
+                      <div
+                        key={track.trackId}
+                        className="grid grid-cols-4 items-center gap-4 mr-5"
                       >
-                        {track.name}
-                      </Label>
-                      <Input
-                        id={`rating-${track.trackId}`}
-                        type="number"
-                        value={editedRatings[track.trackId] || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || (value >= 0 && value <= 10)) {
-                            handleRatingChange(track.trackId, value);
+                        <Label
+                          htmlFor={`rating-${track.trackId}`}
+                          className="text-right"
+                        >
+                          {track.name}
+                        </Label>
+                        <Input
+                          id={`rating-${track.trackId}`}
+                          type="number"
+                          value={editedRatings[track.trackId] || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || (value >= 0 && value <= 10)) {
+                              handleRatingChange(track.trackId, value);
+                            }
+                          }}
+                          placeholder={
+                            editedRatings[track.trackId] === null
+                              ? "Grayed out - Enter a value if you want"
+                              : "Enter a rating (0-10)"
                           }
-                        }}
-                        placeholder={
-                          editedRatings[track.trackId] === null
-                            ? "Grayed out - Enter a value if you want"
-                            : "Enter a rating (0-10)"
-                        }
-                        className="col-span-3"
-                      />
-                    </div>
-                  ))}
+                          className="col-span-3"
+                        />
+                      </div>
+                    ))
+                ) : (
+                  <div>Loading track details...</div>
+                )}
               </div>
               <DialogFooter className="mt-4">
                 {" "}
