@@ -572,37 +572,37 @@ const RateAlbum = () => {
                         {albumData.name}
                       </a>
                     </p>
-                    <p className="text-gray-700 font-semibold">
+                    <p className="text-gray-700 dark:text-gray-300 font-semibold">
                       Artists:{" "}
                       <span className="font-normal">
                         <a
                           href={albumData.artists[0].external_urls.spotify} // Spotify link for the artist
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:underline"
+                          className="hover:underline text-gray-700 dark:text-gray-300"
                         >
                           {albumData.artists[0].name}
                         </a>
                       </span>
                     </p>
-                    <p className="text-gray-700 font-semibold">
+                    <p className="text-gray-700 dark:text-gray-300 font-semibold">
                       Release Date:{" "}
-                      <span className="font-normal">
+                      <span className="font-normal text-gray-700 dark:text-gray-300">
                         {albumData.release_date}
                       </span>
                     </p>
                   </div>
 
                   <div className="my-2">
-                    <p className="text-lg text-gray-700 font-semibold mt-2">
+                    <p className="text-lg text-gray-700 dark:text-gray-300 font-semibold mt-2">
                       Producers:
-                      <span className="block break-words text-wrap font-normal text-sm">
+                      <span className="block break-words text-gray-700 dark:text-gray-300 font-normal text-sm">
                         {producers}
                       </span>
                     </p>
-                    <p className="text-lg text-gray-700 font-semibold mt-1">
+                    <p className="text-lg text-gray-700 dark:text-gray-300 font-semibold mt-1">
                       Writers:
-                      <span className="block break-words text-wrap font-normal text-sm">
+                      <span className="block break-words text-gray-700 dark:text-gray-300 font-normal text-sm">
                         {writers}
                       </span>
                     </p>

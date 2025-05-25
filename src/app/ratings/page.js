@@ -636,10 +636,10 @@ const RatingsPage = () => {
                     <h2 className="text-2xl font-bold text-wrap">
                       {rating.albumName}
                     </h2>
-                    <p className="text-gray-600 text-wrap">
+                    <p className="text-gray-600 dark:text-gray-200 text-wrap">
                       {rating.albumArtist}
                     </p>
-                    <p className="text-gray-600 text-sm mt-1 text-wrap">
+                    <p className="text-gray-600 dark:text-gray-200 text-sm mt-1 text-wrap">
                       {rating.releaseDate}
                     </p>
                   </div>
@@ -653,9 +653,9 @@ const RatingsPage = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="text-gray-600 text-lg font-semibold">
+                  <p className="text-gray-600 dark:text-gray-200 text-lg font-semibold">
                     Average Rating:{" "}
-                    <span className="font-medium">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
                       {calculateAverageRating(rating.ratings)}
                     </span>
                   </p>
@@ -780,7 +780,7 @@ const RatingsPage = () => {
               {/* Debugging log */}
               <RatingTrendChart albumId={selectedAlbumId} />
               <hr className="mt-5" />
-              <DialogFooter className="bg-white mt-4">
+              <DialogFooter className="mt-4">
                 {" "}
                 {/* Ensure footer stays at the bottom */}
                 <Button
@@ -831,10 +831,10 @@ const RatingsPage = () => {
                           >
                             {selectedRating.trackDetails[0]?.albumName}
                           </a>
-                          <p className="text-gray-600 text-wrap text-md">
+                          <p className="text-gray-600 dark:text-gray-200 text-wrap text-md">
                             {selectedRating.trackDetails[0]?.albumArtist}
                           </p>
-                          <p className="text-gray-600 text-sm mt-1 text-wrap">
+                          <p className="text-gray-600 dark:text-gray-200 text-sm mt-1 text-wrap">
                             {selectedRating.trackDetails[0]?.releaseDate}
                           </p>
                         </div>
@@ -855,7 +855,7 @@ const RatingsPage = () => {
                 </DialogTitle>
               </DialogHeader>
               <hr />
-              <DialogDescription className="text-gray-600 text-sm text-wrap">
+              <DialogDescription className="text-gray-600 dark:text-gray-200 text-sm text-wrap">
                 Track ratings for this album:
               </DialogDescription>
               <div className="grid gap-4 pb-4 overflow-y-auto flex-grow">
@@ -877,11 +877,11 @@ const RatingsPage = () => {
                           href={`https://open.spotify.com/track/${track.trackId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-base font-semibold text-gray-800 text-wrap hover:text-blue-500 hover:underline"
+                          className="text-base font-semibold text-wrap hover:text-blue-500 hover:underline"
                         >
                           {track.name}
                         </a>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-300">
                           #
                           <span
                             onClick={() =>
@@ -908,13 +908,15 @@ const RatingsPage = () => {
                           </div>
                         </div>
                       ) : (
-                        selectedRating.ratings[track.trackId]
+                        <span className="text-xl text-gray-800">
+                          {selectedRating.ratings[track.trackId]}
+                        </span>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
-              <DialogFooter className="bg-white mt-4">
+              <DialogFooter className="mt-4">
                 <Button
                   variant="outline"
                   onClick={() => setIsViewRatingsDialogOpen(false)}

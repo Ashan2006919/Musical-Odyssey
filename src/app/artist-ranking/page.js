@@ -340,15 +340,15 @@ const ArtistRankingPage = () => {
                         {artist.name}
                       </a>
                     ) : (
-                      <span className="text-3xl font-bold text-gray-600 text-wrap">
+                      <span className="text-3xl font-bold text-wrap">
                         {artist.name}
                       </span>
                     )}
                     <ArtistRankingRatingLabel rating={artist.averageRating} />
                   </div>
-                  <p className="text-gray-600 text-lg font-semibold px-4">
+                  <p className="text-gray-700 dark:text-gray-200 text-lg font-semibold px-4">
                     Average Rating:{" "}
-                    <span className="font-medium">
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
                       {artist.averageRating.toFixed(1)}
                     </span>
                   </p>
@@ -480,40 +480,40 @@ const ArtistRankingPage = () => {
                           ...selectedArtist,
                           albums: [...selectedArtist.albums],
                         });
-                      }}
+                        }}
+                      >
+                        Clear Sorting
+                      </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    </div>
+                  </DialogHeader>
+                  <hr />
+                  <div className="grid gap-4 pb-4 overflow-y-auto flex-grow max-h-[400px] px-4">
+                    {selectedArtist.albums?.map((album) => (
+                    <div
+                      key={album.albumId}
+                      className="flex items-center justify-between py-2 rounded-lg shadow-sm"
                     >
-                      Clear Sorting
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </DialogHeader>
-            <hr />
-            <div className="grid gap-4 pb-4 overflow-y-auto flex-grow max-h-[400px] px-4">
-              {selectedArtist.albums?.map((album) => (
-                <div
-                  key={album.albumId}
-                  className="flex items-center justify-between py-2 rounded-lg shadow-sm"
-                >
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={album.image || "/images/default-album.png"}
-                      alt={album.name}
-                      className="h-12 w-12 rounded-md"
-                    />
-                    <div>
-                      {/* Album Name as Link */}
+                      <div className="flex items-center gap-4">
+                      <img
+                        src={album.image || "/images/default-album.png"}
+                        alt={album.name}
+                        className="h-12 w-12 rounded-lg border-2 border-gray-300 dark:border-blue-400 transition-colors"
+                      />
+                      <div>
+                        {/* Album Name as Link */}
                       {album.spotifyUrl ? (
                         <a
                           href={album.spotifyUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-base font-semibold text-blue-600 hover:underline"
+                          className="text-lg font-semibold text-blue-600 hover:underline"
                         >
                           {album.name}
                         </a>
                       ) : (
-                        <span className="text-base font-semibold text-gray-600">
+                        <span className="text-base font-semibold text-gray-600 dark:text-gray-300">
                           {album.name}
                         </span>
                       )}
