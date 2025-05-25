@@ -621,7 +621,7 @@ const RatingsPage = () => {
                 </div>
 
                 <button
-                  className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 text-xl"
+                  className="absolute -right-8 top-4 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 text-xl"
                   onClick={() => handleEditClick(rating._id)} // Pass the correct ratingId
                 >
                   <FontAwesomeIcon icon={faEdit} />
@@ -831,7 +831,7 @@ const RatingsPage = () => {
                           >
                             {selectedRating.trackDetails[0]?.albumName}
                           </a>
-                          <p className="text-gray-600 dark:text-gray-200 text-wrap text-md">
+                          <p className="text-gray-600 dark:text-gray-200 text-wrap">
                             {selectedRating.trackDetails[0]?.albumArtist}
                           </p>
                           <p className="text-gray-600 dark:text-gray-200 text-sm mt-1 text-wrap">
@@ -908,7 +908,7 @@ const RatingsPage = () => {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-xl text-gray-800">
+                        <span className="text-lg font-bold text-gray-800">
                           {selectedRating.ratings[track.trackId]}
                         </span>
                       )}
