@@ -23,32 +23,32 @@ const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
         <hr />
         <div className="grid gap-4 pb-4 pt-2">
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={9.7} />
-            <span className="font-semibold">9.5 - 10</span>
+            <ArtistRankingRatingLabel rating={9.5} />
+            <span className="font-semibold">9 - 10</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={9.2} />
-            <span className="font-semibold">9 - 9.5</span>
+            <span className="font-semibold">8.5 - 9</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={8} />
-            <span className="font-semibold">7.5 - 9</span>
+            <span className="font-semibold">7 - 8.5</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={6.5} />
-            <span className="font-semibold">6 - 7.5</span>
+            <span className="font-semibold">5 - 7</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={5} />
-            <span className="font-semibold">4.5 - 6</span>
+            <span className="font-semibold">3.5 - 5</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={3} />
-            <span className="font-semibold">2 - 4.5</span>
+            <span className="font-semibold">1.5 - 3.5</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={1} />
-            <span className="font-semibold">0 - 2</span>
+            <span className="font-semibold">0 - 1.5</span>
           </div>
         </div>
         <DialogFooter>
