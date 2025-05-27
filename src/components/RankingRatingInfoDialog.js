@@ -23,7 +23,7 @@ const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
         <hr />
         <div className="grid gap-4 pb-4 pt-2">
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={10} />
+            <ArtistRankingRatingLabel rating={9.7} />
             <span className="font-semibold">9.5 - 10</span>
           </div>
           <div className="flex justify-between items-center">
