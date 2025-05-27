@@ -27,11 +27,11 @@ const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
             <span className="font-semibold">9 - 10</span>
           </div>
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={9.2} />
+            <ArtistRankingRatingLabel rating={8.7} />
             <span className="font-semibold">8.5 - 9</span>
           </div>
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={8} />
+            <ArtistRankingRatingLabel rating={7.5} />
             <span className="font-semibold">7 - 8.5</span>
           </div>
           <div className="flex justify-between items-center">
