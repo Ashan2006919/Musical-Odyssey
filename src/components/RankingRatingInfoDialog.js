@@ -23,28 +23,28 @@ const RankingRatingInfoDialog = ({ isOpen, onClose }) => {
         <hr />
         <div className="grid gap-4 pb-4 pt-2">
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={9.5} />
-            <span className="font-semibold">9 - 10</span>
+            <ArtistRankingRatingLabel rating={9} />
+            <span className="font-semibold">8.5 - 10</span>
           </div>
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={8.7} />
-            <span className="font-semibold">8.5 - 9</span>
+            <ArtistRankingRatingLabel rating={8} />
+            <span className="font-semibold">7.5 - 8.5</span>
           </div>
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={7.5} />
-            <span className="font-semibold">7 - 8.5</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={6.5} />
-            <span className="font-semibold">5 - 7</span>
+            <ArtistRankingRatingLabel rating={7} />
+            <span className="font-semibold">6 - 7.5</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={5} />
-            <span className="font-semibold">3.5 - 5</span>
+            <span className="font-semibold">4.5 - 6</span>
           </div>
           <div className="flex justify-between items-center">
-            <ArtistRankingRatingLabel rating={3} />
-            <span className="font-semibold">1.5 - 3.5</span>
+            <ArtistRankingRatingLabel rating={4} />
+            <span className="font-semibold">3 - 4.5</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <ArtistRankingRatingLabel rating={2} />
+            <span className="font-semibold">1.5 - 3</span>
           </div>
           <div className="flex justify-between items-center">
             <ArtistRankingRatingLabel rating={1} />

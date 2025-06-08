@@ -18,23 +18,23 @@ const ArtistRankingRatingLabel = ({ rating }) => {
     label = 'Bad';
     color = 'red';
     textColor = 'white';
-  } else if (rating < 3.5) {
+  } else if (rating < 3) {
     label = 'Mid';
     color = 'orange';
     textColor = 'white';
-  } else if (rating < 5) {
+  } else if (rating < 4.5) {
     label = 'Good';
     color = 'yellow';
     textColor = 'black';
-  } else if (rating < 7) {
+  } else if (rating < 6) {
     label = 'Great';
     color = 'green';
     textColor = 'white';
-  } else if (rating < 8.5) {
+  } else if (rating < 7.5) {
     label = 'Amazing';
     color = 'limegreen';
     textColor = 'black';
-  } else if (rating < 9) {
+  } else if (rating < 8.5) {
     label = 'Perfect';
     color = 'blue';
     textColor = 'white';

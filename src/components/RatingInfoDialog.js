@@ -28,27 +28,27 @@ const RatingInfoDialog = ({ isOpen, onClose }) => {
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={9.2} />
-            <span className="font-semibold">8.8 - 9.6</span>
+            <span className="font-semibold">9 - 9.6</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={8} />
-            <span className="font-semibold">7.6 - 8.8</span>
+            <span className="font-semibold">7.5 - 9</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={6.5} />
-            <span className="font-semibold">6 - 7.6</span>
+            <span className="font-semibold">6.5 - 7.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={5} />
-            <span className="font-semibold">4.5 - 6</span>
+            <span className="font-semibold">5 - 6.5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={3} />
-            <span className="font-semibold">2 - 4.5</span>
+            <span className="font-semibold">3 - 5</span>
           </div>
           <div className="flex justify-between items-center">
             <RatingLabel rating={1} />
-            <span className="font-semibold">0 - 2</span>
+            <span className="font-semibold">0 - 3</span>
           </div>
         </div>
         <DialogFooter>

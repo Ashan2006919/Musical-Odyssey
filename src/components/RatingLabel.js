@@ -14,23 +14,23 @@ const RatingLabel = ({ rating }) => {
   let color = '';
   let textColor = '';
 
-  if (rating < 2) {
+  if (rating < 3) {
     label = 'Bad';
     color = 'red';
     textColor = 'white';
-  } else if (rating < 4.5) {
+  } else if (rating < 5) {
     label = 'Mid';
     color = 'orange';
     textColor = 'white';
-  } else if (rating < 6) {
+  } else if (rating < 6.5) {
     label = 'Good';
     color = 'yellow';
     textColor = 'black';
-  } else if (rating < 7.6) {
+  } else if (rating < 7.5) {
     label = 'Great';
     color = 'green';
     textColor = 'white';
-  } else if (rating < 8.8) {
+  } else if (rating < 9) {
     label = 'Amazing';
     color = 'limegreen';
     textColor = 'black';
